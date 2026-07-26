@@ -292,6 +292,73 @@ h3 {
   color: white;
 }
 
+.know-toggle.small {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.vocab-search {
+  width: 100%;
+  padding: 12px 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  box-shadow: 0 1px 4px rgba(34, 48, 58, 0.08);
+  margin-bottom: 16px;
+}
+
+.vocab-search::placeholder {
+  color: var(--color-muted);
+}
+
+.vocab-search:focus {
+  outline: 2px solid #2e9b8b;
+  outline-offset: 1px;
+}
+
+.vocab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vocab-entry {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: 0 2px 10px rgba(34, 48, 58, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.vocab-entry-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.vocab-word {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.vocab-plural,
+.vocab-example {
+  font-size: 0.85rem;
+  margin: 2px 0 0;
+}
+
+.vocab-en {
+  font-size: 0.95rem;
+  margin: 4px 0 0;
+}
+
 @media (max-width: 400px) {
   .app-header h1 {
     font-size: 1.4rem;
@@ -304,5 +371,14 @@ h3 {
 
   .flashcard-text {
     font-size: 1.15rem;
+  }
+
+  .vocab-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .know-toggle.small {
+    align-self: flex-start;
   }
 }
