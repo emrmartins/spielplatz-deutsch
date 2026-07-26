@@ -6,9 +6,9 @@ import { EXERCISES } from "./data/exercises";
 import AppShell, { type Mode, type TopicFilter } from "./components/AppShell";
 import Flashcards from "./components/Flashcards";
 import VocabLookup from "./components/VocabLookup";
+import FillInBlank from "./components/FillInBlank";
 
-const MODE_PLACEHOLDER: Record<Exclude<Mode, "karten" | "wortschatz">, string> = {
-  uebungen: "Lückentext-Übungen — kommt in Phase 5.",
+const MODE_PLACEHOLDER: Record<Exclude<Mode, "karten" | "wortschatz" | "uebungen">, string> = {
   quiz: "Quiz — kommt in Phase 6.",
 };
 
@@ -21,6 +21,7 @@ export default function App() {
   const [topicFilter, setTopicFilter] = useState<TopicFilter>("alle");
   const [knownPhrases, setKnownPhrases] = useState<Record<string, boolean>>({});
   const [knownVocab, setKnownVocab] = useState<Record<string, boolean>>({});
+  const [knownExercises, setKnownExercises] = useState<Record<string, boolean>>({});
 
   const filteredPhrases = useMemo(
     () => PHRASES.filter((p) => matchesTopic(p.topic, topicFilter)),
@@ -32,6 +33,11 @@ export default function App() {
     [topicFilter],
   );
 
+  const filteredExercises = useMemo(
+    () => EXERCISES.filter((e) => matchesTopic(e.topic, topicFilter)),
+    [topicFilter],
+  );
+
   const progressTotal = useMemo(() => {
     switch (mode) {
       case "karten":
@@ -39,17 +45,18 @@ export default function App() {
       case "wortschatz":
         return filteredVocab.length;
       case "uebungen":
-        return EXERCISES.filter((e) => matchesTopic(e.topic, topicFilter)).length;
+        return filteredExercises.length;
       case "quiz":
         return filteredPhrases.length + filteredVocab.length;
     }
-  }, [mode, topicFilter, filteredPhrases, filteredVocab]);
+  }, [mode, filteredPhrases, filteredVocab, filteredExercises]);
 
   const progressKnown = useMemo(() => {
     if (mode === "karten") return filteredPhrases.filter((p) => knownPhrases[p.id]).length;
     if (mode === "wortschatz") return filteredVocab.filter((v) => knownVocab[v.id]).length;
+    if (mode === "uebungen") return filteredExercises.filter((e) => knownExercises[e.id]).length;
     return 0;
-  }, [mode, filteredPhrases, filteredVocab, knownPhrases, knownVocab]);
+  }, [mode, filteredPhrases, filteredVocab, filteredExercises, knownPhrases, knownVocab, knownExercises]);
 
   const toggleKnownPhrase = (id: string) => {
     setKnownPhrases((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -57,6 +64,10 @@ export default function App() {
 
   const toggleKnownVocab = (id: string) => {
     setKnownVocab((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const markExerciseCorrect = (id: string) => {
+    setKnownExercises((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
   };
 
   return (
@@ -74,7 +85,10 @@ export default function App() {
       {mode === "wortschatz" && (
         <VocabLookup vocab={filteredVocab} known={knownVocab} onToggleKnown={toggleKnownVocab} />
       )}
-      {mode !== "karten" && mode !== "wortschatz" && (
+      {mode === "uebungen" && (
+        <FillInBlank exercises={filteredExercises} onCorrect={markExerciseCorrect} />
+      )}
+      {mode === "quiz" && (
         <div className="card">
           <p className="muted">{MODE_PLACEHOLDER[mode]}</p>
         </div>

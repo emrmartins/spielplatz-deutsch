@@ -359,6 +359,118 @@ h3 {
   margin: 4px 0 0;
 }
 
+.difficulty-chips {
+  margin-bottom: 16px;
+}
+
+.exercise-progress {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.exercise-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.exercise-sentence {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.exercise-select {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 2px solid var(--color-muted);
+  border-radius: 10px;
+  padding: 4px 10px;
+  margin: 0 4px;
+}
+
+.exercise-select:disabled {
+  opacity: 0.85;
+}
+
+.exercise-feedback {
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+}
+
+.exercise-feedback.correct {
+  background: rgba(46, 155, 139, 0.12);
+}
+
+.exercise-feedback.incorrect {
+  background: rgba(217, 84, 78, 0.1);
+}
+
+.exercise-feedback-title {
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.exercise-feedback.correct .exercise-feedback-title {
+  color: #2e9b8b;
+}
+
+.exercise-feedback.incorrect .exercise-feedback-title {
+  color: #d9544e;
+}
+
+.exercise-explanation {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-muted);
+}
+
+.exercise-controls {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.exercise-controls button {
+  border: none;
+  background: var(--color-ink);
+  color: white;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--transition-fast), opacity var(--transition-fast);
+}
+
+.exercise-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.exercise-score {
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.exercise-score button {
+  border: none;
+  background: var(--color-ink);
+  color: white;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 @media (max-width: 400px) {
   .app-header h1 {
     font-size: 1.4rem;
@@ -380,5 +492,9 @@ h3 {
 
   .know-toggle.small {
     align-self: flex-start;
+  }
+
+  .exercise-sentence {
+    font-size: 1.05rem;
   }
 }
