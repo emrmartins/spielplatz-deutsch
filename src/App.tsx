@@ -7,10 +7,7 @@ import AppShell, { type Mode, type TopicFilter } from "./components/AppShell";
 import Flashcards from "./components/Flashcards";
 import VocabLookup from "./components/VocabLookup";
 import FillInBlank from "./components/FillInBlank";
-
-const MODE_PLACEHOLDER: Record<Exclude<Mode, "karten" | "wortschatz" | "uebungen">, string> = {
-  quiz: "Quiz — kommt in Phase 6.",
-};
+import Quiz from "./components/Quiz";
 
 function matchesTopic(topic: TopicId, filter: TopicFilter): boolean {
   return filter === "alle" || topic === filter;
@@ -55,6 +52,12 @@ export default function App() {
     if (mode === "karten") return filteredPhrases.filter((p) => knownPhrases[p.id]).length;
     if (mode === "wortschatz") return filteredVocab.filter((v) => knownVocab[v.id]).length;
     if (mode === "uebungen") return filteredExercises.filter((e) => knownExercises[e.id]).length;
+    if (mode === "quiz") {
+      return (
+        filteredPhrases.filter((p) => knownPhrases[p.id]).length +
+        filteredVocab.filter((v) => knownVocab[v.id]).length
+      );
+    }
     return 0;
   }, [mode, filteredPhrases, filteredVocab, filteredExercises, knownPhrases, knownVocab, knownExercises]);
 
@@ -68,6 +71,14 @@ export default function App() {
 
   const markExerciseCorrect = (id: string) => {
     setKnownExercises((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
+  };
+
+  const markPhraseCorrect = (id: string) => {
+    setKnownPhrases((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
+  };
+
+  const markVocabCorrect = (id: string) => {
+    setKnownVocab((prev) => (prev[id] ? prev : { ...prev, [id]: true }));
   };
 
   return (
@@ -89,9 +100,12 @@ export default function App() {
         <FillInBlank exercises={filteredExercises} onCorrect={markExerciseCorrect} />
       )}
       {mode === "quiz" && (
-        <div className="card">
-          <p className="muted">{MODE_PLACEHOLDER[mode]}</p>
-        </div>
+        <Quiz
+          phrases={filteredPhrases}
+          vocab={filteredVocab}
+          onCorrectPhrase={markPhraseCorrect}
+          onCorrectVocab={markVocabCorrect}
+        />
       )}
     </AppShell>
   );
