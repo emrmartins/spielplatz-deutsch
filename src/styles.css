@@ -128,7 +128,8 @@ h3 {
 .progress-bar-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   margin-bottom: 24px;
 }
 
@@ -150,6 +151,24 @@ h3 {
 .progress-label {
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.reset-progress {
+  border: none;
+  background: none;
+  color: var(--color-muted);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  white-space: nowrap;
+  flex-basis: 100%;
+  text-align: right;
+}
+
+.reset-progress:hover {
+  color: var(--color-ink);
 }
 
 .card {

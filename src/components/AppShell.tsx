@@ -19,6 +19,7 @@ interface AppShellProps {
   onTopicChange: (topic: TopicFilter) => void;
   progressKnown: number;
   progressTotal: number;
+  onResetProgress: () => void;
   children: ReactNode;
 }
 
@@ -29,6 +30,7 @@ export default function AppShell({
   onTopicChange,
   progressKnown,
   progressTotal,
+  onResetProgress,
   children,
 }: AppShellProps) {
   const progressPct = progressTotal === 0 ? 0 : Math.round((progressKnown / progressTotal) * 100);
@@ -81,6 +83,14 @@ export default function AppShell({
         <span className="progress-label muted">
           {progressKnown}/{progressTotal} bekannt
         </span>
+        <button
+          className="reset-progress"
+          onClick={() => {
+            if (window.confirm("Fortschritt wirklich zurücksetzen?")) onResetProgress();
+          }}
+        >
+          Fortschritt zurücksetzen
+        </button>
       </div>
 
       <main className="mode-content">{children}</main>

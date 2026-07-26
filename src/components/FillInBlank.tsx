@@ -3,7 +3,7 @@ import type { Exercise } from "../data/types";
 
 interface FillInBlankProps {
   exercises: Exercise[];
-  onCorrect: (id: string) => void;
+  onAnswer: (id: string, correct: boolean) => void;
 }
 
 type DifficultyFilter = "alle" | 1 | 2 | 3;
@@ -23,7 +23,7 @@ function buildRound(pool: Exercise[]): Exercise[] {
   return shuffle(pool).slice(0, ROUND_SIZE);
 }
 
-export default function FillInBlank({ exercises, onCorrect }: FillInBlankProps) {
+export default function FillInBlank({ exercises, onAnswer }: FillInBlankProps) {
   const [difficulty, setDifficulty] = useState<DifficultyFilter>("alle");
   const pool = useMemo(
     () => exercises.filter((e) => difficulty === "alle" || e.difficulty === difficulty),
@@ -88,7 +88,7 @@ export default function FillInBlank({ exercises, onCorrect }: FillInBlankProps) 
     if (selected === null) return;
     setChecked(true);
     setScore((s) => ({ correct: s.correct + (isCorrect ? 1 : 0), total: s.total + 1 }));
-    if (isCorrect) onCorrect(current.id);
+    onAnswer(current.id, isCorrect);
   };
 
   const handleNext = () => {

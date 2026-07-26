@@ -6,8 +6,8 @@ import { VOCAB } from "../data/vocab";
 interface QuizProps {
   phrases: Phrase[];
   vocab: VocabEntry[];
-  onCorrectPhrase: (id: string) => void;
-  onCorrectVocab: (id: string) => void;
+  onAnswerPhrase: (id: string, correct: boolean) => void;
+  onAnswerVocab: (id: string, correct: boolean) => void;
 }
 
 interface QuizItem {
@@ -61,7 +61,7 @@ function buildOptions(item: QuizItem, direction: Direction): string[] {
   return shuffle([correctText, ...distractors]);
 }
 
-export default function Quiz({ phrases, vocab, onCorrectPhrase, onCorrectVocab }: QuizProps) {
+export default function Quiz({ phrases, vocab, onAnswerPhrase, onAnswerVocab }: QuizProps) {
   const [direction, setDirection] = useState<Direction>("de-en");
   const [score, setScore] = useState({ correct: 0, total: 0 });
 
@@ -107,10 +107,8 @@ export default function Quiz({ phrases, vocab, onCorrectPhrase, onCorrectVocab }
     setChecked(true);
     const isCorrect = options[i] === correctText;
     setScore((s) => ({ correct: s.correct + (isCorrect ? 1 : 0), total: s.total + 1 }));
-    if (isCorrect) {
-      if (current.kind === "phrase") onCorrectPhrase(current.id);
-      else onCorrectVocab(current.id);
-    }
+    if (current.kind === "phrase") onAnswerPhrase(current.id, isCorrect);
+    else onAnswerVocab(current.id, isCorrect);
   };
 
   const handleNext = () => {
