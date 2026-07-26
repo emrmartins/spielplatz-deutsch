@@ -52,5 +52,120 @@ h3 {
 .app-shell {
   max-width: 720px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 24px 16px 48px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.app-header h1 {
+  font-size: 1.75rem;
+}
+
+.app-header p {
+  margin: 4px 0 0;
+  font-size: 0.95rem;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--color-surface);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 16px;
+  overflow-x: auto;
+  box-shadow: 0 1px 4px rgba(34, 48, 58, 0.08);
+}
+
+.mode-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.mode-tab.active {
+  background: var(--color-ink);
+  color: white;
+}
+
+.topic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.chip {
+  --chip-color: var(--color-muted);
+  border: 2px solid var(--chip-color);
+  color: var(--chip-color);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.chip.active {
+  background: var(--chip-color);
+  color: white;
+}
+
+.progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.progress-track {
+  flex: 1;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(34, 48, 58, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #2e9b8b;
+  border-radius: var(--radius-pill);
+  transition: width var(--transition-base);
+}
+
+.progress-label {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(34, 48, 58, 0.06);
+}
+
+@media (max-width: 400px) {
+  .app-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .mode-tab {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
 }
