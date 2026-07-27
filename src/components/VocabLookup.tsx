@@ -1,9 +1,9 @@
 import { Fragment, useMemo, useState } from "react";
-import type { VocabEntry } from "../data/types";
+import type { ProgressRecord, VocabEntry } from "../data/types";
 
 interface VocabLookupProps {
   vocab: VocabEntry[];
-  known: Record<string, boolean>;
+  progress: Record<string, ProgressRecord>;
   onToggleKnown: (id: string) => void;
 }
 
@@ -18,7 +18,7 @@ function renderWord(word: string) {
   ));
 }
 
-export default function VocabLookup({ vocab, known, onToggleKnown }: VocabLookupProps) {
+export default function VocabLookup({ vocab, progress, onToggleKnown }: VocabLookupProps) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -47,7 +47,9 @@ export default function VocabLookup({ vocab, known, onToggleKnown }: VocabLookup
       ) : (
         <div className="vocab-list">
           {filtered.map((v) => {
-            const isKnown = Boolean(known[v.id]);
+            const record = progress[v.id];
+            const isKnown = Boolean(record?.seen);
+            const practiceCount = (record?.correctCount ?? 0) + (record?.wrongCount ?? 0);
             return (
               <div className="vocab-entry" key={v.id}>
                 <div className="vocab-entry-main">
@@ -55,6 +57,9 @@ export default function VocabLookup({ vocab, known, onToggleKnown }: VocabLookup
                   {v.plural && <p className="vocab-plural muted">Plural: {v.plural}</p>}
                   <p className="vocab-en">{v.en}</p>
                   {v.example && <p className="vocab-example muted">„{v.example}“</p>}
+                  {practiceCount > 0 && (
+                    <p className="practice-count muted">{practiceCount}× geübt</p>
+                  )}
                 </div>
                 <button
                   className={`know-toggle small${isKnown ? " active" : ""}`}

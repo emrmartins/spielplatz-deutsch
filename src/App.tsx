@@ -61,14 +61,6 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, filteredPhrases, filteredVocab, filteredExercises, isKnown]);
 
-  // A single map of id -> known, derived from the persisted progress store.
-  // Phrase/vocab/exercise ids never collide, so one map serves every mode.
-  const knownMap = useMemo(() => {
-    const map: Record<string, boolean> = {};
-    for (const id in progress) map[id] = Boolean(progress[id].seen);
-    return map;
-  }, [progress]);
-
   const toggleKnown = (id: string) => markKnown(id, !isKnown(id));
 
   return (
@@ -82,12 +74,14 @@ export default function App() {
       onResetProgress={reset}
     >
       {mode === "karten" && (
-        <Flashcards phrases={filteredPhrases} known={knownMap} onToggleKnown={toggleKnown} />
+        <Flashcards phrases={filteredPhrases} progress={progress} onToggleKnown={toggleKnown} />
       )}
       {mode === "wortschatz" && (
-        <VocabLookup vocab={filteredVocab} known={knownMap} onToggleKnown={toggleKnown} />
+        <VocabLookup vocab={filteredVocab} progress={progress} onToggleKnown={toggleKnown} />
       )}
-      {mode === "uebungen" && <FillInBlank exercises={filteredExercises} onAnswer={recordAnswer} />}
+      {mode === "uebungen" && (
+        <FillInBlank exercises={filteredExercises} progress={progress} onAnswer={recordAnswer} />
+      )}
       {mode === "quiz" && (
         <Quiz
           phrases={filteredPhrases}

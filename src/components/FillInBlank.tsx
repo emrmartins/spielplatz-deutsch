@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Exercise } from "../data/types";
+import type { Exercise, ProgressRecord } from "../data/types";
 
 interface FillInBlankProps {
   exercises: Exercise[];
+  progress: Record<string, ProgressRecord>;
   onAnswer: (id: string, correct: boolean) => void;
 }
 
@@ -23,12 +24,22 @@ function buildRound(pool: Exercise[]): Exercise[] {
   return shuffle(pool).slice(0, ROUND_SIZE);
 }
 
-export default function FillInBlank({ exercises, onAnswer }: FillInBlankProps) {
+export default function FillInBlank({ exercises, progress, onAnswer }: FillInBlankProps) {
   const [difficulty, setDifficulty] = useState<DifficultyFilter>("alle");
   const pool = useMemo(
     () => exercises.filter((e) => difficulty === "alle" || e.difficulty === difficulty),
     [exercises, difficulty],
   );
+
+  const overallStats = useMemo(() => {
+    let correct = 0;
+    let wrong = 0;
+    for (const e of exercises) {
+      correct += progress[e.id]?.correctCount ?? 0;
+      wrong += progress[e.id]?.wrongCount ?? 0;
+    }
+    return { correct, wrong, total: correct + wrong };
+  }, [exercises, progress]);
 
   const [round, setRound] = useState<Exercise[]>(() => buildRound(pool));
   const [index, setIndex] = useState(0);
@@ -55,10 +66,19 @@ export default function FillInBlank({ exercises, onAnswer }: FillInBlankProps) {
     setComplete(false);
   };
 
+  const overallPct =
+    overallStats.total === 0 ? null : Math.round((overallStats.correct / overallStats.total) * 100);
+  const statsLine = overallPct !== null && (
+    <p className="overall-stats muted">
+      Insgesamt: {overallStats.correct} richtig, {overallStats.wrong} falsch ({overallPct}%)
+    </p>
+  );
+
   if (pool.length === 0) {
     return (
       <div className="fill-in-blank">
         <DifficultyChips value={difficulty} onChange={setDifficulty} />
+        {statsLine}
         <div className="card">
           <p className="muted">Keine Übungen in dieser Auswahl.</p>
         </div>
@@ -70,6 +90,7 @@ export default function FillInBlank({ exercises, onAnswer }: FillInBlankProps) {
     return (
       <div className="fill-in-blank">
         <DifficultyChips value={difficulty} onChange={setDifficulty} />
+        {statsLine}
         <div className="card exercise-score">
           <p className="flashcard-text">
             Ergebnis: {score.correct} / {score.total}
@@ -82,6 +103,7 @@ export default function FillInBlank({ exercises, onAnswer }: FillInBlankProps) {
 
   const current = round[index];
   const isCorrect = selected === current.correctIndex;
+  const currentRecord = progress[current.id];
   const [before, after] = current.sentence.split("___");
 
   const handleCheck = () => {
@@ -104,6 +126,7 @@ export default function FillInBlank({ exercises, onAnswer }: FillInBlankProps) {
   return (
     <div className="fill-in-blank">
       <DifficultyChips value={difficulty} onChange={setDifficulty} />
+      {statsLine}
 
       <div className="exercise-progress muted">
         Frage {index + 1} / {round.length}
@@ -137,6 +160,11 @@ export default function FillInBlank({ exercises, onAnswer }: FillInBlankProps) {
               {isCorrect ? "Richtig!" : `Leider falsch. Richtig wäre: „${current.options[current.correctIndex]}“.`}
             </p>
             <p className="exercise-explanation">{current.explanation}</p>
+            {currentRecord && (
+              <p className="practice-count muted">
+                Bisher: {currentRecord.correctCount} richtig, {currentRecord.wrongCount} falsch
+              </p>
+            )}
           </div>
         )}
 

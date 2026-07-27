@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Phrase } from "../data/types";
+import type { Phrase, ProgressRecord } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import { useSpeech } from "../hooks/useSpeech";
 
 interface FlashcardsProps {
   phrases: Phrase[];
-  known: Record<string, boolean>;
+  progress: Record<string, ProgressRecord>;
   onToggleKnown: (id: string) => void;
 }
 
@@ -18,16 +18,17 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-export default function Flashcards({ phrases, known, onToggleKnown }: FlashcardsProps) {
-  const [deck, setDeck] = useState(phrases);
+export default function Flashcards({ phrases, progress, onToggleKnown }: FlashcardsProps) {
+  const [deck, setDeck] = useState(() => shuffle(phrases));
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const { speak, hasGermanVoice } = useSpeech();
 
   useEffect(() => {
-    setDeck(phrases);
+    setDeck(shuffle(phrases));
     setIndex(0);
     setFlipped(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phrases]);
 
   const goPrev = useCallback(() => {
@@ -75,7 +76,9 @@ export default function Flashcards({ phrases, known, onToggleKnown }: Flashcards
 
   const current = deck[index];
   const topic = TOPICS.find((t) => t.id === current.topic);
-  const isKnown = Boolean(known[current.id]);
+  const record = progress[current.id];
+  const isKnown = Boolean(record?.seen);
+  const practiceCount = (record?.correctCount ?? 0) + (record?.wrongCount ?? 0);
 
   return (
     <div className="flashcards">
@@ -120,6 +123,12 @@ export default function Flashcards({ phrases, known, onToggleKnown }: Flashcards
           </div>
         </div>
       </div>
+
+      {practiceCount > 0 && record && (
+        <p className="practice-count muted">
+          {practiceCount}× geübt ({record.correctCount} richtig, {record.wrongCount} falsch)
+        </p>
+      )}
 
       <div className="flashcards-controls">
         <button onClick={goPrev} aria-label="Vorherige Karte">
