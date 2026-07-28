@@ -54,5 +54,21 @@ export function useProgress() {
 
   const reset = useCallback(() => setProgress({}), []);
 
-  return { progress, isKnown, markKnown, recordAnswer, reset };
+  // Merges a remote progress snapshot into local state, keeping whichever
+  // record (local or remote) has the newer lastSeen per item.
+  const mergeProgress = useCallback((remote: Record<string, ProgressRecord>) => {
+    setProgress((prev) => {
+      const merged = { ...prev };
+      for (const id in remote) {
+        const remoteRecord = remote[id];
+        const localRecord = merged[id];
+        if (!localRecord || (remoteRecord.lastSeen ?? 0) > (localRecord.lastSeen ?? 0)) {
+          merged[id] = remoteRecord;
+        }
+      }
+      return merged;
+    });
+  }, []);
+
+  return { progress, isKnown, markKnown, recordAnswer, reset, mergeProgress };
 }

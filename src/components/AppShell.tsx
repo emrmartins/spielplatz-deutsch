@@ -1,9 +1,20 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { TopicId } from "../data/types";
 import { TOPICS } from "../data/phrases";
+import type { SyncStatus } from "../hooks/useSync";
 
 export type Mode = "karten" | "wortschatz" | "uebungen" | "quiz";
 export type TopicFilter = TopicId | "alle";
+
+interface SyncState {
+  enabled: boolean;
+  code: string | null;
+  status: SyncStatus;
+  createCode: () => void;
+  linkCode: (code: string) => void;
+  unlink: () => void;
+  syncNow: () => void;
+}
 
 const MODES: { id: Mode; label: string }[] = [
   { id: "karten", label: "Karten" },
@@ -20,6 +31,7 @@ interface AppShellProps {
   progressKnown: number;
   progressTotal: number;
   onResetProgress: () => void;
+  sync: SyncState;
   children: ReactNode;
 }
 
@@ -31,6 +43,7 @@ export default function AppShell({
   progressKnown,
   progressTotal,
   onResetProgress,
+  sync,
   children,
 }: AppShellProps) {
   const progressPct = progressTotal === 0 ? 0 : Math.round((progressKnown / progressTotal) * 100);
@@ -93,7 +106,57 @@ export default function AppShell({
         </button>
       </div>
 
+      {sync.enabled && <SyncControls sync={sync} />}
+
       <main className="mode-content">{children}</main>
+    </div>
+  );
+}
+
+const STATUS_LABEL: Record<SyncStatus, string> = {
+  idle: "",
+  syncing: "Synchronisiere…",
+  synced: "Synchronisiert",
+  error: "Synchronisierung fehlgeschlagen",
+};
+
+function SyncControls({ sync }: { sync: SyncState }) {
+  const [input, setInput] = useState("");
+
+  if (!sync.code) {
+    return (
+      <div className="sync-panel">
+        <button onClick={sync.createCode}>Code erstellen</button>
+        <div className="sync-link-row">
+          <input
+            type="text"
+            placeholder="Code eingeben"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            aria-label="Sync-Code eingeben"
+          />
+          <button
+            onClick={() => {
+              sync.linkCode(input);
+              setInput("");
+            }}
+            disabled={!input.trim()}
+          >
+            Verbinden
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="sync-panel">
+      <span className="sync-code">
+        Code: <strong>{sync.code}</strong>
+      </span>
+      <span className="muted sync-status">{STATUS_LABEL[sync.status]}</span>
+      <button onClick={sync.syncNow}>Jetzt synchronisieren</button>
+      <button onClick={sync.unlink}>Trennen</button>
     </div>
   );
 }

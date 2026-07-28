@@ -9,6 +9,7 @@ import VocabLookup from "./components/VocabLookup";
 import FillInBlank from "./components/FillInBlank";
 import Quiz from "./components/Quiz";
 import { useProgress } from "./hooks/useProgress";
+import { useSync } from "./hooks/useSync";
 
 function matchesTopic(topic: TopicId, filter: TopicFilter): boolean {
   return filter === "alle" || topic === filter;
@@ -17,7 +18,8 @@ function matchesTopic(topic: TopicId, filter: TopicFilter): boolean {
 export default function App() {
   const [mode, setMode] = useState<Mode>("karten");
   const [topicFilter, setTopicFilter] = useState<TopicFilter>("alle");
-  const { progress, isKnown, markKnown, recordAnswer, reset } = useProgress();
+  const { progress, isKnown, markKnown, recordAnswer, reset, mergeProgress } = useProgress();
+  const sync = useSync(progress, mergeProgress);
 
   const filteredPhrases = useMemo(
     () => PHRASES.filter((p) => matchesTopic(p.topic, topicFilter)),
@@ -72,6 +74,7 @@ export default function App() {
       progressKnown={progressKnown}
       progressTotal={progressTotal}
       onResetProgress={reset}
+      sync={sync}
     >
       {mode === "karten" && (
         <Flashcards phrases={filteredPhrases} progress={progress} onToggleKnown={toggleKnown} />
