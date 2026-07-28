@@ -103,7 +103,7 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .chip {
@@ -123,6 +123,79 @@ h3 {
 .chip.active {
   background: var(--chip-color);
   color: white;
+}
+
+.level-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.level-filter-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.level-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.level-chip {
+  --chip-color: var(--color-muted);
+  border: 1.5px solid var(--chip-color);
+  background: transparent;
+  color: var(--chip-color);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.level-chip.active {
+  background: var(--chip-color);
+  color: white;
+}
+
+.level-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
+
+.level-badge.level-a2 {
+  background: #5e86c4;
+}
+
+.level-badge.level-b1 {
+  background: #2e9b8b;
+}
+
+.level-badge.level-b2 {
+  background: #d99a1c;
+}
+
+.level-badge.level-c1 {
+  background: #9b6db0;
+}
+
+.level-badge.corner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .progress-bar-wrap {
@@ -435,10 +508,6 @@ h3 {
 .vocab-en {
   font-size: 0.95rem;
   margin: 4px 0 0;
-}
-
-.difficulty-chips {
-  margin-bottom: 16px;
 }
 
 .exercise-progress {

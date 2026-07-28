@@ -7,8 +7,6 @@ interface FillInBlankProps {
   onAnswer: (id: string, correct: boolean) => void;
 }
 
-type DifficultyFilter = "alle" | 1 | 2 | 3;
-
 const ROUND_SIZE = 10;
 
 function shuffle<T>(items: T[]): T[] {
@@ -25,12 +23,6 @@ function buildRound(pool: Exercise[]): Exercise[] {
 }
 
 export default function FillInBlank({ exercises, progress, onAnswer }: FillInBlankProps) {
-  const [difficulty, setDifficulty] = useState<DifficultyFilter>("alle");
-  const pool = useMemo(
-    () => exercises.filter((e) => difficulty === "alle" || e.difficulty === difficulty),
-    [exercises, difficulty],
-  );
-
   const overallStats = useMemo(() => {
     let correct = 0;
     let wrong = 0;
@@ -41,7 +33,7 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
     return { correct, wrong, total: correct + wrong };
   }, [exercises, progress]);
 
-  const [round, setRound] = useState<Exercise[]>(() => buildRound(pool));
+  const [round, setRound] = useState<Exercise[]>(() => buildRound(exercises));
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
@@ -49,16 +41,16 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
-    setRound(buildRound(pool));
+    setRound(buildRound(exercises));
     setIndex(0);
     setSelected(null);
     setChecked(false);
     setScore({ correct: 0, total: 0 });
     setComplete(false);
-  }, [pool]);
+  }, [exercises]);
 
   const startNewRound = () => {
-    setRound(buildRound(pool));
+    setRound(buildRound(exercises));
     setIndex(0);
     setSelected(null);
     setChecked(false);
@@ -74,11 +66,9 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
     </p>
   );
 
-  if (pool.length === 0) {
+  if (exercises.length === 0) {
     return (
       <div className="fill-in-blank">
-        <DifficultyChips value={difficulty} onChange={setDifficulty} />
-        {statsLine}
         <div className="card">
           <p className="muted">Keine Übungen in dieser Auswahl.</p>
         </div>
@@ -89,7 +79,6 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
   if (complete) {
     return (
       <div className="fill-in-blank">
-        <DifficultyChips value={difficulty} onChange={setDifficulty} />
         {statsLine}
         <div className="card exercise-score">
           <p className="flashcard-text">
@@ -125,7 +114,6 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
 
   return (
     <div className="fill-in-blank">
-      <DifficultyChips value={difficulty} onChange={setDifficulty} />
       {statsLine}
 
       <div className="exercise-progress muted">
@@ -178,35 +166,6 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function DifficultyChips({
-  value,
-  onChange,
-}: {
-  value: DifficultyFilter;
-  onChange: (d: DifficultyFilter) => void;
-}) {
-  const options: { id: DifficultyFilter; label: string }[] = [
-    { id: "alle", label: "Alle" },
-    { id: 1, label: "Leicht" },
-    { id: 2, label: "Mittel" },
-    { id: 3, label: "Schwer" },
-  ];
-  return (
-    <div className="topic-chips difficulty-chips" role="group" aria-label="Schwierigkeit filtern">
-      {options.map((opt) => (
-        <button
-          key={opt.id}
-          className={`chip${value === opt.id ? " active" : ""}`}
-          style={{ "--chip-color": "#22303A" } as React.CSSProperties}
-          onClick={() => onChange(opt.id)}
-        >
-          {opt.label}
-        </button>
-      ))}
     </div>
   );
 }

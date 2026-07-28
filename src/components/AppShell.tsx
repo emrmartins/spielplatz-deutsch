@@ -1,10 +1,18 @@
 import { useState, type ReactNode } from "react";
-import type { TopicId } from "../data/types";
+import type { Level, TopicId } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import type { SyncStatus } from "../hooks/useSync";
 
 export type Mode = "karten" | "wortschatz" | "uebungen" | "quiz";
 export type TopicFilter = TopicId | "alle";
+export type LevelFilter = Level | "alle";
+
+const LEVELS: { id: Level; color: string }[] = [
+  { id: "A2", color: "#5E86C4" },
+  { id: "B1", color: "#2E9B8B" },
+  { id: "B2", color: "#D99A1C" },
+  { id: "C1", color: "#9B6DB0" },
+];
 
 interface SyncState {
   enabled: boolean;
@@ -28,6 +36,8 @@ interface AppShellProps {
   onModeChange: (mode: Mode) => void;
   topicFilter: TopicFilter;
   onTopicChange: (topic: TopicFilter) => void;
+  levelFilter: LevelFilter;
+  onLevelChange: (level: LevelFilter) => void;
   progressKnown: number;
   progressTotal: number;
   onResetProgress: () => void;
@@ -40,6 +50,8 @@ export default function AppShell({
   onModeChange,
   topicFilter,
   onTopicChange,
+  levelFilter,
+  onLevelChange,
   progressKnown,
   progressTotal,
   onResetProgress,
@@ -87,6 +99,29 @@ export default function AppShell({
             {topic.label}
           </button>
         ))}
+      </div>
+
+      <div className="level-filter">
+        <span className="level-filter-label muted">Niveau</span>
+        <div className="level-chips" role="group" aria-label="Niveau filtern">
+          <button
+            className={`level-chip${levelFilter === "alle" ? " active" : ""}`}
+            style={{ "--chip-color": "#22303A" } as React.CSSProperties}
+            onClick={() => onLevelChange("alle")}
+          >
+            Alle
+          </button>
+          {LEVELS.map((level) => (
+            <button
+              key={level.id}
+              className={`level-chip${levelFilter === level.id ? " active" : ""}`}
+              style={{ "--chip-color": level.color } as React.CSSProperties}
+              onClick={() => onLevelChange(level.id)}
+            >
+              {level.id}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="progress-bar-wrap">

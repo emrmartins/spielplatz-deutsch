@@ -103,6 +103,7 @@ export default function Flashcards({ phrases, progress, onToggleKnown }: Flashca
                 {topic.label}
               </span>
             )}
+            <span className={`level-badge level-${current.level.toLowerCase()} corner`}>{current.level}</span>
             <p className="flashcard-text">{current.de}</p>
             {hasGermanVoice && (
               <button

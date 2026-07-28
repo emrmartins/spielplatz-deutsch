@@ -53,7 +53,10 @@ export default function VocabLookup({ vocab, progress, onToggleKnown }: VocabLoo
             return (
               <div className="vocab-entry" key={v.id}>
                 <div className="vocab-entry-main">
-                  <p className="vocab-word">{renderWord(v.word)}</p>
+                  <p className="vocab-word">
+                    {renderWord(v.word)}{" "}
+                    <span className={`level-badge level-${v.level.toLowerCase()}`}>{v.level}</span>
+                  </p>
                   {v.plural && <p className="vocab-plural muted">Plural: {v.plural}</p>}
                   <p className="vocab-en">{v.en}</p>
                   {v.example && <p className="vocab-example muted">„{v.example}“</p>}

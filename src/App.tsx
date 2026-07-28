@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import type { TopicId } from "./data/types";
+import type { Level, TopicId } from "./data/types";
 import { PHRASES } from "./data/phrases";
 import { VOCAB } from "./data/vocab";
 import { EXERCISES } from "./data/exercises";
-import AppShell, { type Mode, type TopicFilter } from "./components/AppShell";
+import AppShell, { type LevelFilter, type Mode, type TopicFilter } from "./components/AppShell";
 import Flashcards from "./components/Flashcards";
 import VocabLookup from "./components/VocabLookup";
 import FillInBlank from "./components/FillInBlank";
@@ -15,25 +15,30 @@ function matchesTopic(topic: TopicId, filter: TopicFilter): boolean {
   return filter === "alle" || topic === filter;
 }
 
+function matchesLevel(level: Level, filter: LevelFilter): boolean {
+  return filter === "alle" || level === filter;
+}
+
 export default function App() {
   const [mode, setMode] = useState<Mode>("karten");
   const [topicFilter, setTopicFilter] = useState<TopicFilter>("alle");
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>("alle");
   const { progress, isKnown, markKnown, recordAnswer, reset, mergeProgress } = useProgress();
   const sync = useSync(progress, mergeProgress);
 
   const filteredPhrases = useMemo(
-    () => PHRASES.filter((p) => matchesTopic(p.topic, topicFilter)),
-    [topicFilter],
+    () => PHRASES.filter((p) => matchesTopic(p.topic, topicFilter) && matchesLevel(p.level, levelFilter)),
+    [topicFilter, levelFilter],
   );
 
   const filteredVocab = useMemo(
-    () => VOCAB.filter((v) => matchesTopic(v.topic, topicFilter)),
-    [topicFilter],
+    () => VOCAB.filter((v) => matchesTopic(v.topic, topicFilter) && matchesLevel(v.level, levelFilter)),
+    [topicFilter, levelFilter],
   );
 
   const filteredExercises = useMemo(
-    () => EXERCISES.filter((e) => matchesTopic(e.topic, topicFilter)),
-    [topicFilter],
+    () => EXERCISES.filter((e) => matchesTopic(e.topic, topicFilter) && matchesLevel(e.level, levelFilter)),
+    [topicFilter, levelFilter],
   );
 
   const progressTotal = useMemo(() => {
@@ -71,6 +76,8 @@ export default function App() {
       onModeChange={setMode}
       topicFilter={topicFilter}
       onTopicChange={setTopicFilter}
+      levelFilter={levelFilter}
+      onLevelChange={setLevelFilter}
       progressKnown={progressKnown}
       progressTotal={progressTotal}
       onResetProgress={reset}
