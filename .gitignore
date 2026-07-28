@@ -5,3 +5,10 @@ dev-dist
 *.local
 .claude/settings.local.json
 worker/.wrangler
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

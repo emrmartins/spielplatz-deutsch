@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ProgressRecord } from "../data/types";
 
-// Set after deploying the Cloudflare Worker (see worker/README or setup chat).
-const SYNC_URL = "";
-
 const CODE_KEY = "spielplatz-deutsch:sync-code";
 const CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"; // no 0/O/1/I/L ambiguity
 
@@ -19,10 +16,7 @@ export function useSync(
   progress: Record<string, ProgressRecord>,
   mergeProgress: (remote: Record<string, ProgressRecord>) => void,
 ) {
-  const enabled = Boolean(SYNC_URL);
-  const [code, setCode] = useState<string | null>(() =>
-    enabled ? window.localStorage.getItem(CODE_KEY) : null,
-  );
+  const [code, setCode] = useState<string | null>(() => window.localStorage.getItem(CODE_KEY));
   const [status, setStatus] = useState<SyncStatus>("idle");
   const pushTimer = useRef<number | null>(null);
   const skipNextPush = useRef(false);
@@ -30,7 +24,7 @@ export function useSync(
   const push = useCallback(async (c: string, data: Record<string, ProgressRecord>) => {
     setStatus("syncing");
     try {
-      const res = await fetch(`${SYNC_URL}/sync/${c}`, {
+      const res = await fetch(`/sync/${c}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -45,7 +39,7 @@ export function useSync(
     async (c: string) => {
       setStatus("syncing");
       try {
-        const res = await fetch(`${SYNC_URL}/sync/${c}`);
+        const res = await fetch(`/sync/${c}`);
         if (res.ok) {
           const remote = await res.json();
           skipNextPush.current = true;
@@ -61,13 +55,13 @@ export function useSync(
 
   // Pull once on mount if a code is already linked.
   useEffect(() => {
-    if (enabled && code) pull(code);
+    if (code) pull(code);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debounced push whenever progress changes locally (skipped right after a pull-merge).
   useEffect(() => {
-    if (!enabled || !code) return;
+    if (!code) return;
     if (skipNextPush.current) {
       skipNextPush.current = false;
       return;
@@ -77,7 +71,7 @@ export function useSync(
     return () => {
       if (pushTimer.current) window.clearTimeout(pushTimer.current);
     };
-  }, [enabled, code, progress, push]);
+  }, [code, progress, push]);
 
   const createCode = useCallback(() => {
     const c = randomCode();
@@ -107,5 +101,5 @@ export function useSync(
     if (code) pull(code);
   }, [code, pull]);
 
-  return { enabled, code, status, createCode, linkCode, unlink, syncNow };
+  return { enabled: true, code, status, createCode, linkCode, unlink, syncNow };
 }

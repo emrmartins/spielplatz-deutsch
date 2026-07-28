@@ -1,38 +1,25 @@
-# spielplatz-deutsch-sync
+# worker/index.js
 
-A tiny Cloudflare Worker that stores progress JSON blobs in Workers KV, keyed by a short sync code. Used by the app's "cross-device sync" feature — no accounts, no personal data, just a code-linked JSON blob.
+The Worker that serves the whole app in production: static assets (the built React app) for normal routes, and a small `/sync/*` JSON API — backed by Workers KV — for the cross-device progress sync feature. No accounts, no personal data; just a code-linked JSON blob.
 
-## Deploy (one-time setup)
+Wired up via `@cloudflare/vite-plugin` and the root `wrangler.jsonc`, so `npm run dev` runs the app and this Worker together locally, and `npm run deploy` builds and deploys both as one Cloudflare Worker.
 
-1. Create a free Cloudflare account at [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up) if you don't have one.
-2. From this `worker/` directory, log in:
-   ```bash
-   npx wrangler login
-   ```
-   (opens a browser tab to authorize)
-3. Create the KV namespace:
-   ```bash
-   npx wrangler kv namespace create PROGRESS
-   ```
-   This prints an `id`. Copy it into `wrangler.toml`, replacing `REPLACE_WITH_KV_NAMESPACE_ID`.
-4. Deploy:
-   ```bash
-   npx wrangler deploy
-   ```
-   This prints your Worker's URL, e.g. `https://spielplatz-deutsch-sync.<your-subdomain>.workers.dev`.
-5. Paste that URL into `SYNC_URL` in `../src/hooks/useSync.ts`, then rebuild and redeploy the app.
+## One-time setup (already done for this project)
 
-## Local testing
+1. `npx wrangler login` — authorizes the Cloudflare CLI.
+2. `npx wrangler kv namespace create PROGRESS` — creates the KV store; its `id` goes in `wrangler.jsonc` under `kv_namespaces`.
+
+## Commands
 
 ```bash
-npx wrangler dev --port 8787
+npm run dev       # app + worker together, hot reload
+npm run preview   # production build + wrangler dev (closer to real deploy)
+npm run deploy    # production build + wrangler deploy (goes live)
 ```
-
-Runs a local simulation (miniflare) with local KV — no Cloudflare account or real deployment needed for this.
 
 ## API
 
 - `GET /sync/:code` — returns the stored progress JSON for that code (`{}` if none yet)
-- `PUT /sync/:code` — stores the request body (JSON) under that code, overwriting any previous value
+- `PUT /sync/:code` — stores the request body (JSON, must be under 200KB) under that code, overwriting any previous value
 
 Codes are 4-12 alphanumeric characters, case-insensitive (normalized to uppercase).

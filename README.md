@@ -1,15 +1,19 @@
 # Spielplatz-Deutsch
 
-Everyday German phrases, vocabulary, and practice for the playground, Kita, and playdates. Built for a small group of parents — no backend, no accounts, no ongoing cost. All content and progress live in the browser.
+Everyday German phrases, vocabulary, and practice for the playground, Kita, and playdates. Built for a small group of parents — no accounts, no ongoing cost. Content and progress live in the browser; an optional, free Cloudflare Worker lets you sync progress across your own devices.
 
 ## Modes
 
-- **Karten** — flashcards with a flip animation, shuffle, keyboard navigation (arrow keys to move, space/enter to flip), a "Kann ich" known-toggle, and optional audio playback if your browser has a German voice installed.
+- **Karten** — flashcards with a flip animation, auto-shuffle, keyboard navigation (arrow keys to move, space/enter to flip), a "Kann ich" known-toggle, and optional audio playback if your browser has a German voice installed.
 - **Wortschatz** — searchable vocabulary lookup with topic filtering and a per-entry known-toggle.
-- **Übungen** — fill-in-the-blank exercises in 10-question rounds, filterable by topic and difficulty, with immediate feedback and an explanation for each answer.
+- **Übungen** — fill-in-the-blank exercises in 10-question rounds, filterable by topic and difficulty, with immediate feedback, an explanation for each answer, and a running success-rate stat.
 - **Quiz** — multiple-choice quiz drawing from both phrases and vocabulary, with a German→English / English→German toggle and a running score.
 
-Progress (which items you've marked or answered correctly) is saved to your browser's `localStorage` — nothing leaves your device. Use "Fortschritt zurücksetzen" to start over.
+Progress (which items you've marked or answered correctly, and how many times) is saved to your browser's `localStorage`. Use "Fortschritt zurücksetzen" to start over.
+
+### Cross-device sync (optional)
+
+Click "Code erstellen" to get a short code, then enter that same code on another device to link its progress to the same account — no sign-up. Progress syncs automatically in the background (per-item, so using two devices offline doesn't overwrite either one). This uses the small Worker in `worker/` — see below.
 
 ## Requirements
 
@@ -37,21 +41,33 @@ npm run build
 
 Produces a static, production-ready site in `dist/` — including the PWA service worker, so the built app works offline and can be installed to a home screen once deployed.
 
-To check the production build locally before deploying:
+To check the production build locally before deploying (runs the app and the sync Worker together, close to the real deployment):
 
 ```bash
 npm run preview
 ```
+
+## Deploy
+
+The app (and its sync Worker) deploy together to Cloudflare Workers, for free:
+
+```bash
+npm run deploy
+```
+
+First time only: `npx wrangler login`, then `npx wrangler kv namespace create PROGRESS` and copy the printed `id` into `wrangler.jsonc`. See `worker/README.md` for details.
 
 ## Project structure
 
 ```
 src/
   data/         Content: types, phrases, vocab, exercises (source of truth)
-  hooks/        useProgress (localStorage), useSpeech (Web Speech API)
+  hooks/        useProgress (localStorage), useSpeech (Web Speech API), useSync (cross-device sync)
   components/   AppShell + one component per mode
   App.tsx       Mode/topic filter state
   styles.css    Design tokens (colors, fonts) + all styling
+worker/         Cloudflare Worker: serves the built app + the /sync/* API
+wrangler.jsonc  Cloudflare deployment config (Worker + KV binding)
 ```
 
 ## Editing content
