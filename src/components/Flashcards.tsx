@@ -7,6 +7,7 @@ interface FlashcardsProps {
   phrases: Phrase[];
   progress: Record<string, ProgressRecord>;
   onToggleKnown: (id: string) => void;
+  onReveal: () => void;
 }
 
 function shuffle<T>(items: T[]): T[] {
@@ -18,30 +19,36 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-export default function Flashcards({ phrases, progress, onToggleKnown }: FlashcardsProps) {
+export default function Flashcards({ phrases, progress, onToggleKnown, onReveal }: FlashcardsProps) {
   const [deck, setDeck] = useState(() => shuffle(phrases));
   const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
+  const [revealed, setRevealed] = useState(false);
   const { speak, hasGermanVoice } = useSpeech();
 
   useEffect(() => {
     setDeck(shuffle(phrases));
     setIndex(0);
-    setFlipped(false);
+    setRevealed(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phrases]);
 
   const goPrev = useCallback(() => {
     setIndex((i) => (deck.length === 0 ? 0 : (i - 1 + deck.length) % deck.length));
-    setFlipped(false);
+    setRevealed(false);
   }, [deck.length]);
 
   const goNext = useCallback(() => {
     setIndex((i) => (deck.length === 0 ? 0 : (i + 1) % deck.length));
-    setFlipped(false);
+    setRevealed(false);
   }, [deck.length]);
 
-  const toggleFlip = useCallback(() => setFlipped((f) => !f), []);
+  const toggleReveal = useCallback(() => {
+    setRevealed((r) => {
+      const next = !r;
+      if (next) onReveal();
+      return next;
+    });
+  }, [onReveal]);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -53,17 +60,17 @@ export default function Flashcards({ phrases, progress, onToggleKnown }: Flashca
         goNext();
       } else if (e.key === " " || e.key === "Enter") {
         e.preventDefault();
-        toggleFlip();
+        toggleReveal();
       }
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [goPrev, goNext, toggleFlip]);
+  }, [goPrev, goNext, toggleReveal]);
 
   const handleShuffle = () => {
     setDeck(shuffle(phrases));
     setIndex(0);
-    setFlipped(false);
+    setRevealed(false);
   };
 
   if (deck.length === 0) {
@@ -90,36 +97,42 @@ export default function Flashcards({ phrases, progress, onToggleKnown }: Flashca
       </div>
 
       <div
-        className={`flip-card${flipped ? " flipped" : ""}`}
-        onClick={toggleFlip}
+        className="card tap-card"
+        onClick={toggleReveal}
         role="button"
         tabIndex={0}
-        aria-label="Karte umdrehen"
+        aria-expanded={revealed}
+        aria-label="Übersetzung anzeigen oder verbergen"
       >
-        <div className="flip-card-inner">
-          <div className="flip-card-front">
-            {topic && (
-              <span className="topic-badge" style={{ "--badge-color": topic.color } as React.CSSProperties}>
-                {topic.label}
-              </span>
-            )}
-            <span className={`level-badge level-${current.level.toLowerCase()} corner`}>{current.level}</span>
-            <p className="flashcard-text">{current.de}</p>
-            {hasGermanVoice && (
-              <button
-                className="audio-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  speak(current.de);
-                }}
-                aria-label="Vorlesen"
-              >
-                🔊
-              </button>
-            )}
-          </div>
-          <div className="flip-card-back">
-            <p className="flashcard-text">{current.en}</p>
+        {topic && (
+          <span className="topic-badge" style={{ "--badge-color": topic.color } as React.CSSProperties}>
+            {topic.label}
+          </span>
+        )}
+        <span className={`level-badge level-${current.level.toLowerCase()} corner`}>{current.level}</span>
+
+        <p className="flashcard-text">{current.de}</p>
+
+        {hasGermanVoice && (
+          <button
+            className="audio-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              speak(current.de);
+            }}
+            aria-label="Vorlesen"
+          >
+            🔊
+          </button>
+        )}
+
+        <span className={`reveal-chevron${revealed ? " open" : ""}`} aria-hidden="true">
+          ▾
+        </span>
+
+        <div className={`reveal-wrap${revealed ? " open" : ""}`}>
+          <div className="reveal-inner">
+            <p className="flashcard-text flashcard-en">{current.en}</p>
             {current.note && <p className="flashcard-note muted">{current.note}</p>}
           </div>
         </div>

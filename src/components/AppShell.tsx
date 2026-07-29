@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from "react";
-import type { Level, TopicId } from "../data/types";
+import type { Level, StreakData, TopicId } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import type { SyncStatus } from "../hooks/useSync";
 
 export type Mode = "karten" | "wortschatz" | "uebungen" | "quiz";
 export type TopicFilter = TopicId | "alle";
-export type LevelFilter = Level | "alle";
+export type LevelFilter = Set<Level>;
 
 const LEVELS: { id: Level; color: string }[] = [
   { id: "A2", color: "#5E86C4" },
@@ -37,10 +37,11 @@ interface AppShellProps {
   topicFilter: TopicFilter;
   onTopicChange: (topic: TopicFilter) => void;
   levelFilter: LevelFilter;
-  onLevelChange: (level: LevelFilter) => void;
+  onLevelToggle: (level: Level) => void;
   progressKnown: number;
   progressTotal: number;
   onResetProgress: () => void;
+  streak: StreakData | null;
   sync: SyncState;
   children: ReactNode;
 }
@@ -51,10 +52,11 @@ export default function AppShell({
   topicFilter,
   onTopicChange,
   levelFilter,
-  onLevelChange,
+  onLevelToggle,
   progressKnown,
   progressTotal,
   onResetProgress,
+  streak,
   sync,
   children,
 }: AppShellProps) {
@@ -63,6 +65,7 @@ export default function AppShell({
   return (
     <div className="app-shell">
       <header className="app-header">
+        {streak && <StreakBadge streak={streak} />}
         <h1>Spielplatz-Deutsch</h1>
         <p className="muted">Alltagsdeutsch für Spielplatz, Kita und Verabredungen</p>
       </header>
@@ -103,20 +106,14 @@ export default function AppShell({
 
       <div className="level-filter">
         <span className="level-filter-label muted">Niveau</span>
-        <div className="level-chips" role="group" aria-label="Niveau filtern">
-          <button
-            className={`level-chip${levelFilter === "alle" ? " active" : ""}`}
-            style={{ "--chip-color": "#22303A" } as React.CSSProperties}
-            onClick={() => onLevelChange("alle")}
-          >
-            Alle
-          </button>
+        <div className="level-chips" role="group" aria-label="Niveau filtern (Mehrfachauswahl)">
           {LEVELS.map((level) => (
             <button
               key={level.id}
-              className={`level-chip${levelFilter === level.id ? " active" : ""}`}
+              className={`level-chip${levelFilter.has(level.id) ? " active" : ""}`}
               style={{ "--chip-color": level.color } as React.CSSProperties}
-              onClick={() => onLevelChange(level.id)}
+              aria-pressed={levelFilter.has(level.id)}
+              onClick={() => onLevelToggle(level.id)}
             >
               {level.id}
             </button>
@@ -145,6 +142,23 @@ export default function AppShell({
 
       <main className="mode-content">{children}</main>
     </div>
+  );
+}
+
+function StreakBadge({ streak }: { streak: StreakData }) {
+  const [showBest, setShowBest] = useState(false);
+  const display = Math.max(1, streak.currentStreak);
+
+  return (
+    <button
+      className="streak-badge"
+      onClick={() => setShowBest((s) => !s)}
+      title={`Bestrekord: ${streak.longestStreak} Tage`}
+      aria-label={`Serie: ${display} Tage. Bestrekord: ${streak.longestStreak} Tage`}
+    >
+      🔥 {display}
+      {showBest && <span className="streak-best">Rekord: {streak.longestStreak}</span>}
+    </button>
   );
 }
 

@@ -58,3 +58,9 @@ export interface ProgressRecord {
   wrongCount: number;
   lastSeen?: number;
 }
+
+export interface StreakData {
+  currentStreak: number;
+  longestStreak: number;
+  lastActiveDate: string;   // ISO date string "2026-07-29"
+}

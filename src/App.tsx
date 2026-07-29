@@ -11,33 +11,32 @@ import Quiz from "./components/Quiz";
 import { useProgress } from "./hooks/useProgress";
 import { useSync } from "./hooks/useSync";
 
+const ALL_LEVELS: Level[] = ["A2", "B1", "B2", "C1"];
+
 function matchesTopic(topic: TopicId, filter: TopicFilter): boolean {
   return filter === "alle" || topic === filter;
-}
-
-function matchesLevel(level: Level, filter: LevelFilter): boolean {
-  return filter === "alle" || level === filter;
 }
 
 export default function App() {
   const [mode, setMode] = useState<Mode>("karten");
   const [topicFilter, setTopicFilter] = useState<TopicFilter>("alle");
-  const [levelFilter, setLevelFilter] = useState<LevelFilter>("alle");
-  const { progress, isKnown, markKnown, recordAnswer, reset, mergeProgress } = useProgress();
+  const [levelFilter, setLevelFilter] = useState<LevelFilter>(() => new Set(ALL_LEVELS));
+  const { progress, isKnown, markKnown, recordAnswer, reset, mergeProgress, streak, recordActivity } =
+    useProgress();
   const sync = useSync(progress, mergeProgress);
 
   const filteredPhrases = useMemo(
-    () => PHRASES.filter((p) => matchesTopic(p.topic, topicFilter) && matchesLevel(p.level, levelFilter)),
+    () => PHRASES.filter((p) => matchesTopic(p.topic, topicFilter) && levelFilter.has(p.level)),
     [topicFilter, levelFilter],
   );
 
   const filteredVocab = useMemo(
-    () => VOCAB.filter((v) => matchesTopic(v.topic, topicFilter) && matchesLevel(v.level, levelFilter)),
+    () => VOCAB.filter((v) => matchesTopic(v.topic, topicFilter) && levelFilter.has(v.level)),
     [topicFilter, levelFilter],
   );
 
   const filteredExercises = useMemo(
-    () => EXERCISES.filter((e) => matchesTopic(e.topic, topicFilter) && matchesLevel(e.level, levelFilter)),
+    () => EXERCISES.filter((e) => matchesTopic(e.topic, topicFilter) && levelFilter.has(e.level)),
     [topicFilter, levelFilter],
   );
 
@@ -70,6 +69,19 @@ export default function App() {
 
   const toggleKnown = (id: string) => markKnown(id, !isKnown(id));
 
+  const toggleLevel = (level: Level) => {
+    setLevelFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(level)) {
+        if (next.size === 1) return prev; // keep at least one level selected
+        next.delete(level);
+      } else {
+        next.add(level);
+      }
+      return next;
+    });
+  };
+
   return (
     <AppShell
       mode={mode}
@@ -77,17 +89,28 @@ export default function App() {
       topicFilter={topicFilter}
       onTopicChange={setTopicFilter}
       levelFilter={levelFilter}
-      onLevelChange={setLevelFilter}
+      onLevelToggle={toggleLevel}
       progressKnown={progressKnown}
       progressTotal={progressTotal}
       onResetProgress={reset}
+      streak={streak}
       sync={sync}
     >
       {mode === "karten" && (
-        <Flashcards phrases={filteredPhrases} progress={progress} onToggleKnown={toggleKnown} />
+        <Flashcards
+          phrases={filteredPhrases}
+          progress={progress}
+          onToggleKnown={toggleKnown}
+          onReveal={recordActivity}
+        />
       )}
       {mode === "wortschatz" && (
-        <VocabLookup vocab={filteredVocab} progress={progress} onToggleKnown={toggleKnown} />
+        <VocabLookup
+          vocab={filteredVocab}
+          progress={progress}
+          onToggleKnown={toggleKnown}
+          onExpand={recordActivity}
+        />
       )}
       {mode === "uebungen" && (
         <FillInBlank exercises={filteredExercises} progress={progress} onAnswer={recordAnswer} />

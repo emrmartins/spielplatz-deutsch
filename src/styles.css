@@ -56,8 +56,35 @@ h3 {
 }
 
 .app-header {
+  position: relative;
   text-align: center;
   margin-bottom: 20px;
+}
+
+.streak-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(34, 48, 58, 0.08);
+}
+
+.streak-best {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  white-space: nowrap;
 }
 
 .app-header h1 {
@@ -157,12 +184,14 @@ h3 {
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  opacity: 0.45;
+  transition: background var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
 }
 
 .level-chip.active {
   background: var(--chip-color);
   color: white;
+  opacity: 1;
 }
 
 .level-badge {
@@ -337,46 +366,22 @@ h3 {
   background: #dce6ec;
 }
 
-.flip-card {
+.tap-card {
   position: relative;
-  perspective: 1200px;
   cursor: pointer;
-  min-height: 240px;
+  min-height: 200px;
   margin-bottom: 16px;
-}
-
-.flip-card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 240px;
-  transition: transform var(--transition-base);
-  transform-style: preserve-3d;
-}
-
-.flip-card.flipped .flip-card-inner {
-  transform: rotateY(180deg);
-}
-
-.flip-card-front,
-.flip-card-back {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: 0 2px 10px rgba(34, 48, 58, 0.08);
-  padding: 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
   gap: 14px;
+  transition: background var(--transition-fast);
 }
 
-.flip-card-back {
-  transform: rotateY(180deg);
+.tap-card:hover {
+  background: #f2f6f8;
 }
 
 .flashcard-text {
@@ -389,6 +394,43 @@ h3 {
   font-size: 0.9rem;
   margin: 0;
   max-width: 42ch;
+}
+
+.reveal-chevron {
+  display: inline-block;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+  transition: transform var(--transition-fast);
+}
+
+.reveal-chevron.open {
+  transform: rotate(180deg);
+}
+
+.reveal-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 100%;
+  transition: grid-template-rows var(--transition-base);
+}
+
+.reveal-wrap.open {
+  grid-template-rows: 1fr;
+}
+
+.reveal-inner {
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.reveal-wrap.open .reveal-inner {
+  opacity: 1;
 }
 
 .topic-badge {
@@ -478,14 +520,34 @@ h3 {
 }
 
 .vocab-entry {
+  --topic-color: var(--color-muted);
   background: var(--color-surface);
   border-radius: var(--radius-lg);
+  border-left: 4px solid var(--topic-color);
   padding: 16px 20px;
   box-shadow: 0 2px 10px rgba(34, 48, 58, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.vocab-entry:hover {
+  background: #f2f6f8;
+}
+
+.vocab-entry .reveal-inner {
+  align-items: flex-start;
+  text-align: left;
+  padding-top: 8px;
+}
+
+.vocab-pos {
+  font-size: 0.75rem;
+  font-style: italic;
+  margin: 0;
 }
 
 .vocab-entry-main {
@@ -497,6 +559,10 @@ h3 {
   font-family: var(--font-display);
   font-size: 1.15rem;
   margin: 0;
+}
+
+.vocab-word .reveal-chevron {
+  margin-left: 4px;
 }
 
 .vocab-plural,
@@ -699,6 +765,11 @@ h3 {
 @media (max-width: 400px) {
   .app-header h1 {
     font-size: 1.4rem;
+  }
+
+  .streak-badge {
+    position: static;
+    margin-bottom: 10px;
   }
 
   .mode-tab {
