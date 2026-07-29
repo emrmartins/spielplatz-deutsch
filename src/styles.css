@@ -408,6 +408,11 @@ h3 {
   transform: rotate(180deg);
 }
 
+.exercise-sentence-wrap .reveal-chevron {
+  display: block;
+  margin-top: 4px;
+}
+
 .reveal-wrap {
   display: grid;
   grid-template-rows: 0fr;
@@ -432,6 +437,11 @@ h3 {
 
 .reveal-wrap.open .reveal-inner {
   opacity: 1;
+}
+
+.exercise-card .reveal-inner {
+  align-items: flex-start;
+  text-align: left;
 }
 
 .topic-badge {
@@ -602,11 +612,28 @@ h3 {
   gap: 16px;
 }
 
+.exercise-sentence-wrap {
+  cursor: pointer;
+  border-radius: var(--radius-lg);
+  padding: 4px 8px;
+  margin: -4px -8px;
+  transition: background var(--transition-fast);
+}
+
+.exercise-sentence-wrap:hover {
+  background: #f2f6f8;
+}
+
 .exercise-sentence {
   font-family: var(--font-display);
   font-size: 1.25rem;
   margin: 0;
   line-height: 1.6;
+}
+
+.exercise-en {
+  font-size: 0.95rem;
+  margin: 8px 0 0;
 }
 
 .exercise-select {

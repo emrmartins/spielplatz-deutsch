@@ -105,15 +105,15 @@ export default function App() {
         />
       )}
       {mode === "wortschatz" && (
-        <VocabLookup
-          vocab={filteredVocab}
-          progress={progress}
-          onToggleKnown={toggleKnown}
-          onExpand={recordActivity}
-        />
+        <VocabLookup vocab={filteredVocab} progress={progress} onToggleKnown={toggleKnown} />
       )}
       {mode === "uebungen" && (
-        <FillInBlank exercises={filteredExercises} progress={progress} onAnswer={recordAnswer} />
+        <FillInBlank
+          exercises={filteredExercises}
+          progress={progress}
+          onAnswer={recordAnswer}
+          onReveal={recordActivity}
+        />
       )}
       {mode === "quiz" && (
         <Quiz

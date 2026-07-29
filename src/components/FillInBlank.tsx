@@ -5,6 +5,7 @@ interface FillInBlankProps {
   exercises: Exercise[];
   progress: Record<string, ProgressRecord>;
   onAnswer: (id: string, correct: boolean) => void;
+  onReveal: () => void;
 }
 
 const ROUND_SIZE = 10;
@@ -22,7 +23,7 @@ function buildRound(pool: Exercise[]): Exercise[] {
   return shuffle(pool).slice(0, ROUND_SIZE);
 }
 
-export default function FillInBlank({ exercises, progress, onAnswer }: FillInBlankProps) {
+export default function FillInBlank({ exercises, progress, onAnswer, onReveal }: FillInBlankProps) {
   const overallStats = useMemo(() => {
     let correct = 0;
     let wrong = 0;
@@ -37,6 +38,7 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [checked, setChecked] = useState(false);
+  const [translated, setTranslated] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [complete, setComplete] = useState(false);
 
@@ -45,6 +47,7 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
     setIndex(0);
     setSelected(null);
     setChecked(false);
+    setTranslated(false);
     setScore({ correct: 0, total: 0 });
     setComplete(false);
   }, [exercises]);
@@ -54,6 +57,7 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
     setIndex(0);
     setSelected(null);
     setChecked(false);
+    setTranslated(false);
     setScore({ correct: 0, total: 0 });
     setComplete(false);
   };
@@ -95,6 +99,14 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
   const currentRecord = progress[current.id];
   const [before, after] = current.sentence.split("___");
 
+  const toggleTranslate = () => {
+    setTranslated((t) => {
+      const next = !t;
+      if (next) onReveal();
+      return next;
+    });
+  };
+
   const handleCheck = () => {
     if (selected === null) return;
     setChecked(true);
@@ -107,6 +119,7 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
       setIndex(index + 1);
       setSelected(null);
       setChecked(false);
+      setTranslated(false);
     } else {
       setComplete(true);
     }
@@ -121,26 +134,51 @@ export default function FillInBlank({ exercises, progress, onAnswer }: FillInBla
       </div>
 
       <div className="card exercise-card">
-        <p className="exercise-sentence">
-          {before}
-          <select
-            className="exercise-select"
-            value={selected ?? ""}
-            disabled={checked}
-            onChange={(e) => setSelected(Number(e.target.value))}
-            aria-label="Antwort auswählen"
-          >
-            <option value="" disabled>
-              Wählen…
-            </option>
-            {current.options.map((opt, i) => (
-              <option key={i} value={i}>
-                {opt}
+        <div
+          className="exercise-sentence-wrap"
+          onClick={toggleTranslate}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              toggleTranslate();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-expanded={translated}
+          aria-label="Übersetzung anzeigen oder verbergen"
+        >
+          <p className="exercise-sentence">
+            {before}
+            <select
+              className="exercise-select"
+              value={selected ?? ""}
+              disabled={checked}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => setSelected(Number(e.target.value))}
+              aria-label="Antwort auswählen"
+            >
+              <option value="" disabled>
+                Wählen…
               </option>
-            ))}
-          </select>
-          {after}
-        </p>
+              {current.options.map((opt, i) => (
+                <option key={i} value={i}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+            {after}
+          </p>
+          <span className={`reveal-chevron${translated ? " open" : ""}`} aria-hidden="true">
+            ▾
+          </span>
+        </div>
+
+        <div className={`reveal-wrap${translated ? " open" : ""}`}>
+          <div className="reveal-inner">
+            <p className="exercise-en muted">{current.en}</p>
+          </div>
+        </div>
 
         {checked && (
           <div className={`exercise-feedback ${isCorrect ? "correct" : "incorrect"}`}>

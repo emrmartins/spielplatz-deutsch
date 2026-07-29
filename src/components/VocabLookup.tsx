@@ -6,7 +6,6 @@ interface VocabLookupProps {
   vocab: VocabEntry[];
   progress: Record<string, ProgressRecord>;
   onToggleKnown: (id: string) => void;
-  onExpand: () => void;
 }
 
 const ARTICLES = new Set(["der", "die", "das"]);
@@ -28,9 +27,8 @@ function renderWord(word: string) {
   ));
 }
 
-export default function VocabLookup({ vocab, progress, onToggleKnown, onExpand }: VocabLookupProps) {
+export default function VocabLookup({ vocab, progress, onToggleKnown }: VocabLookupProps) {
   const [query, setQuery] = useState("");
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -39,19 +37,6 @@ export default function VocabLookup({ vocab, progress, onToggleKnown, onExpand }
       (v) => v.word.toLowerCase().includes(q) || v.en.toLowerCase().includes(q),
     );
   }, [vocab, query]);
-
-  const toggleExpand = (id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-        onExpand();
-      }
-      return next;
-    });
-  };
 
   return (
     <div className="vocab-lookup">
@@ -75,46 +60,26 @@ export default function VocabLookup({ vocab, progress, onToggleKnown, onExpand }
             const isKnown = Boolean(record?.seen);
             const practiceCount = (record?.correctCount ?? 0) + (record?.wrongCount ?? 0);
             const topic = TOPICS.find((t) => t.id === v.topic);
-            const isOpen = expanded.has(v.id);
             return (
               <div
                 className="vocab-entry"
                 key={v.id}
                 style={{ "--topic-color": topic?.color ?? "transparent" } as React.CSSProperties}
-                onClick={() => toggleExpand(v.id)}
-                role="button"
-                tabIndex={0}
-                aria-expanded={isOpen}
               >
                 <div className="vocab-entry-main">
                   <p className="vocab-word">
                     {renderWord(v.word)}{" "}
                     <span className={`level-badge level-${v.level.toLowerCase()}`}>{v.level}</span>
-                    <span className={`reveal-chevron${isOpen ? " open" : ""}`} aria-hidden="true">
-                      ▾
-                    </span>
                   </p>
-
-                  <div className={`reveal-wrap${isOpen ? " open" : ""}`}>
-                    <div className="reveal-inner">
-                      <p className="vocab-en">{v.en}</p>
-                      {v.plural && <p className="vocab-plural muted">Plural: {v.plural}</p>}
-                      {v.example && <p className="vocab-example muted">„{v.example}“</p>}
-                      {v.partOfSpeech && (
-                        <p className="vocab-pos muted">{POS_LABELS[v.partOfSpeech]}</p>
-                      )}
-                      {practiceCount > 0 && (
-                        <p className="practice-count muted">{practiceCount}× geübt</p>
-                      )}
-                    </div>
-                  </div>
+                  <p className="vocab-en">{v.en}</p>
+                  {v.plural && <p className="vocab-plural muted">Plural: {v.plural}</p>}
+                  {v.example && <p className="vocab-example muted">„{v.example}“</p>}
+                  {v.partOfSpeech && <p className="vocab-pos muted">{POS_LABELS[v.partOfSpeech]}</p>}
+                  {practiceCount > 0 && <p className="practice-count muted">{practiceCount}× geübt</p>}
                 </div>
                 <button
                   className={`know-toggle small${isKnown ? " active" : ""}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleKnown(v.id);
-                  }}
+                  onClick={() => onToggleKnown(v.id)}
                 >
                   {isKnown ? "✓ Bekannt" : "Bekannt"}
                 </button>

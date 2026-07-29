@@ -46,6 +46,7 @@ export interface Exercise {
   topic: TopicId;
   level: Level;
   sentence: string;
+  en: string; // English translation of the completed sentence (blank filled in)
   options: string[];
   correctIndex: number;
   explanation: string;
