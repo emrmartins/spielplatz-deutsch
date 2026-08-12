@@ -85,8 +85,8 @@ export default function AppShell({
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div className="header-actions">
-          {streak && <StreakBadge streak={streak} />}
+        {streak && <div className="header-actions header-actions-left"><StreakBadge streak={streak} /></div>}
+        <div className="header-actions header-actions-right">
           <SettingsMenu sync={sync} onResetProgress={onResetProgress} />
         </div>
         <h1>Spielplatz-Deutsch</h1>

@@ -64,10 +64,17 @@ h3 {
 .header-actions {
   position: absolute;
   top: 0;
-  right: 0;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.header-actions-left {
+  left: 0;
+}
+
+.header-actions-right {
+  right: 0;
 }
 
 .streak-badge {
