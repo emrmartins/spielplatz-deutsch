@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Phrase, ProgressRecord } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import { useSpeech } from "../hooks/useSpeech";
@@ -19,14 +19,77 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
+// Cards known ("Kann ich") wait this many days before resurfacing.
+const DUE_DELAY_DAYS = 3;
+// New (never-seen) cards are unlocked gradually, this many per day.
+const DAILY_NEW_CARDS = 8;
+const FIRST_USE_KEY = "spielplatz-deutsch:karten-first-use";
+
+function todayISO(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function daysBetween(aISO: string, bISO: string): number {
+  const a = new Date(`${aISO}T00:00:00`);
+  const b = new Date(`${bISO}T00:00:00`);
+  return Math.round((b.getTime() - a.getTime()) / 86_400_000);
+}
+
+function getFirstUseDate(): string {
+  try {
+    const stored = window.localStorage.getItem(FIRST_USE_KEY);
+    if (stored) return stored;
+    const today = todayISO();
+    window.localStorage.setItem(FIRST_USE_KEY, today);
+    return today;
+  } catch {
+    return todayISO();
+  }
+}
+
+// Stable pseudo-random rank per phrase id, used to pick a consistent (but
+// shuffled-looking) order in which new cards get introduced over days.
+function hashRank(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h / 0xffffffff;
+}
+
 export default function Flashcards({ phrases, progress, onToggleKnown, onReveal }: FlashcardsProps) {
-  const [deck, setDeck] = useState(() => shuffle(phrases));
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+
+  const newCardsCap = useRef(0);
+  if (newCardsCap.current === 0) {
+    const daysSinceStart = Math.max(0, daysBetween(getFirstUseDate(), todayISO()));
+    newCardsCap.current = (daysSinceStart + 1) * DAILY_NEW_CARDS;
+  }
+
+  // Builds today's practice pool: unknown cards are always due, known cards
+  // resurface after DUE_DELAY_DAYS, and only the first `newCardsCap` cards
+  // (by stable rank) are "introduced" yet — the rest trickle in on later days.
+  // Reads progress via progressRef so toggling "Kann ich" mid-session doesn't
+  // reshuffle the deck out from under the user.
+  const buildDeck = useCallback((list: Phrase[]) => {
+    const ranked = [...list].sort((a, b) => hashRank(a.id) - hashRank(b.id));
+    const introduced = ranked.slice(0, newCardsCap.current);
+    const due = introduced.filter((p) => {
+      const record = progressRef.current[p.id];
+      if (!record?.seen || !record.lastSeen) return true;
+      return (Date.now() - record.lastSeen) / 86_400_000 >= DUE_DELAY_DAYS;
+    });
+    const pool = due.length > 0 ? due : introduced.length > 0 ? introduced : ranked;
+    return shuffle(pool);
+  }, []);
+
+  const [deck, setDeck] = useState(() => buildDeck(phrases));
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const { speak, hasGermanVoice } = useSpeech();
 
   useEffect(() => {
-    setDeck(shuffle(phrases));
+    setDeck(buildDeck(phrases));
     setIndex(0);
     setRevealed(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,7 +131,7 @@ export default function Flashcards({ phrases, progress, onToggleKnown, onReveal 
   }, [goPrev, goNext, toggleReveal]);
 
   const handleShuffle = () => {
-    setDeck(shuffle(phrases));
+    setDeck(buildDeck(phrases));
     setIndex(0);
     setRevealed(false);
   };

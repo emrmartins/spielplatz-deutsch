@@ -62,6 +62,15 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
     setComplete(false);
   };
 
+  const current = round[index] as Exercise | undefined;
+  // Every exercise in the data lists the correct choice first (correctIndex: 0),
+  // so the displayed order must be shuffled — the <option> value stays the
+  // original index into current.options, only the render order changes.
+  const optionOrder = useMemo(
+    () => shuffle((current?.options ?? []).map((_, i) => i)),
+    [current],
+  );
+
   const overallPct =
     overallStats.total === 0 ? null : Math.round((overallStats.correct / overallStats.total) * 100);
   const statsLine = overallPct !== null && (
@@ -94,7 +103,8 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
     );
   }
 
-  const current = round[index];
+  if (!current) return null;
+
   const isCorrect = selected === current.correctIndex;
   const currentRecord = progress[current.id];
   const [before, after] = current.sentence.split("___");
@@ -161,9 +171,9 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
               <option value="" disabled>
                 Wählen…
               </option>
-              {current.options.map((opt, i) => (
-                <option key={i} value={i}>
-                  {opt}
+              {optionOrder.map((origIndex) => (
+                <option key={origIndex} value={origIndex}>
+                  {current.options[origIndex]}
                 </option>
               ))}
             </select>

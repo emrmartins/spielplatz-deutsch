@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Level, TopicId } from "./data/types";
-import { PHRASES } from "./data/phrases";
+import { PHRASES, TOPICS } from "./data/phrases";
 import { VOCAB } from "./data/vocab";
 import { EXERCISES } from "./data/exercises";
 import AppShell, { type LevelFilter, type Mode, type TopicFilter } from "./components/AppShell";
@@ -12,32 +12,56 @@ import { useProgress } from "./hooks/useProgress";
 import { useSync } from "./hooks/useSync";
 
 const ALL_LEVELS: Level[] = ["A2", "B1", "B2", "C1"];
+const ALL_TOPICS: TopicId[] = TOPICS.map((t) => t.id);
 
-function matchesTopic(topic: TopicId, filter: TopicFilter): boolean {
-  return filter === "alle" || topic === filter;
+function toggleInSet<T>(set: Set<T>, value: T): Set<T> {
+  const next = new Set(set);
+  if (next.has(value)) {
+    if (next.size === 1) return set; // keep at least one selected
+    next.delete(value);
+  } else {
+    next.add(value);
+  }
+  return next;
 }
 
 export default function App() {
   const [mode, setMode] = useState<Mode>("karten");
-  const [topicFilter, setTopicFilter] = useState<TopicFilter>("alle");
+  const [topicFilter, setTopicFilter] = useState<TopicFilter>(() => new Set(ALL_TOPICS));
   const [levelFilter, setLevelFilter] = useState<LevelFilter>(() => new Set(ALL_LEVELS));
+  const [hideKnown, setHideKnown] = useState(false);
   const { progress, isKnown, markKnown, recordAnswer, reset, mergeProgress, streak, recordActivity } =
     useProgress();
   const sync = useSync(progress, mergeProgress);
 
   const filteredPhrases = useMemo(
-    () => PHRASES.filter((p) => matchesTopic(p.topic, topicFilter) && levelFilter.has(p.level)),
+    () => PHRASES.filter((p) => topicFilter.has(p.topic) && levelFilter.has(p.level)),
     [topicFilter, levelFilter],
   );
 
   const filteredVocab = useMemo(
-    () => VOCAB.filter((v) => matchesTopic(v.topic, topicFilter) && levelFilter.has(v.level)),
+    () => VOCAB.filter((v) => topicFilter.has(v.topic) && levelFilter.has(v.level)),
     [topicFilter, levelFilter],
   );
 
   const filteredExercises = useMemo(
-    () => EXERCISES.filter((e) => matchesTopic(e.topic, topicFilter) && levelFilter.has(e.level)),
+    () => EXERCISES.filter((e) => topicFilter.has(e.topic) && levelFilter.has(e.level)),
     [topicFilter, levelFilter],
+  );
+
+  // "Bekannte ausblenden" narrows the pool actually shown/practiced, but the
+  // progress bar keeps counting against the full topic+level filtered set.
+  const visiblePhrases = useMemo(
+    () => (hideKnown ? filteredPhrases.filter((p) => !isKnown(p.id)) : filteredPhrases),
+    [filteredPhrases, hideKnown, isKnown],
+  );
+  const visibleVocab = useMemo(
+    () => (hideKnown ? filteredVocab.filter((v) => !isKnown(v.id)) : filteredVocab),
+    [filteredVocab, hideKnown, isKnown],
+  );
+  const visibleExercises = useMemo(
+    () => (hideKnown ? filteredExercises.filter((e) => !isKnown(e.id)) : filteredExercises),
+    [filteredExercises, hideKnown, isKnown],
   );
 
   const progressTotal = useMemo(() => {
@@ -68,28 +92,19 @@ export default function App() {
   }, [mode, filteredPhrases, filteredVocab, filteredExercises, isKnown]);
 
   const toggleKnown = (id: string) => markKnown(id, !isKnown(id));
-
-  const toggleLevel = (level: Level) => {
-    setLevelFilter((prev) => {
-      const next = new Set(prev);
-      if (next.has(level)) {
-        if (next.size === 1) return prev; // keep at least one level selected
-        next.delete(level);
-      } else {
-        next.add(level);
-      }
-      return next;
-    });
-  };
+  const toggleTopic = (topic: TopicId) => setTopicFilter((prev) => toggleInSet(prev, topic));
+  const toggleLevel = (level: Level) => setLevelFilter((prev) => toggleInSet(prev, level));
 
   return (
     <AppShell
       mode={mode}
       onModeChange={setMode}
       topicFilter={topicFilter}
-      onTopicChange={setTopicFilter}
+      onTopicToggle={toggleTopic}
       levelFilter={levelFilter}
       onLevelToggle={toggleLevel}
+      hideKnown={hideKnown}
+      onHideKnownChange={setHideKnown}
       progressKnown={progressKnown}
       progressTotal={progressTotal}
       onResetProgress={reset}
@@ -98,18 +113,18 @@ export default function App() {
     >
       {mode === "karten" && (
         <Flashcards
-          phrases={filteredPhrases}
+          phrases={visiblePhrases}
           progress={progress}
           onToggleKnown={toggleKnown}
           onReveal={recordActivity}
         />
       )}
       {mode === "wortschatz" && (
-        <VocabLookup vocab={filteredVocab} progress={progress} onToggleKnown={toggleKnown} />
+        <VocabLookup vocab={visibleVocab} progress={progress} onToggleKnown={toggleKnown} />
       )}
       {mode === "uebungen" && (
         <FillInBlank
-          exercises={filteredExercises}
+          exercises={visibleExercises}
           progress={progress}
           onAnswer={recordAnswer}
           onReveal={recordActivity}
@@ -117,8 +132,8 @@ export default function App() {
       )}
       {mode === "quiz" && (
         <Quiz
-          phrases={filteredPhrases}
-          vocab={filteredVocab}
+          phrases={visiblePhrases}
+          vocab={visibleVocab}
           onAnswerPhrase={recordAnswer}
           onAnswerVocab={recordAnswer}
         />

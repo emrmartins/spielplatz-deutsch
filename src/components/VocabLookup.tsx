@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import type { ProgressRecord, VocabEntry } from "../data/types";
 import { TOPICS } from "../data/phrases";
+import { useSpeech } from "../hooks/useSpeech";
 
 interface VocabLookupProps {
   vocab: VocabEntry[];
@@ -29,6 +30,7 @@ function renderWord(word: string) {
 
 export default function VocabLookup({ vocab, progress, onToggleKnown }: VocabLookupProps) {
   const [query, setQuery] = useState("");
+  const { speak, hasGermanVoice } = useSpeech();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -77,6 +79,16 @@ export default function VocabLookup({ vocab, progress, onToggleKnown }: VocabLoo
                   {v.partOfSpeech && <p className="vocab-pos muted">{POS_LABELS[v.partOfSpeech]}</p>}
                   {practiceCount > 0 && <p className="practice-count muted">{practiceCount}× geübt</p>}
                 </div>
+                {hasGermanVoice && (
+                  <button
+                    type="button"
+                    className="audio-btn small"
+                    onClick={() => speak(v.word)}
+                    aria-label={`„${v.word}“ vorlesen`}
+                  >
+                    🔊
+                  </button>
+                )}
                 <button
                   className={`know-toggle small${isKnown ? " active" : ""}`}
                   onClick={() => onToggleKnown(v.id)}

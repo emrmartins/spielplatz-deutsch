@@ -30,7 +30,6 @@ export const VOCAB: VocabEntry[] = [
   { id: "v018", topic: "koerper", level: "A2", word: "die Hand", plural: "die Hände", en: "hand", partOfSpeech: "noun" },
   { id: "v019", topic: "koerper", level: "A2", word: "krank", en: "sick", example: "Er ist krank.", partOfSpeech: "adj" },
   { id: "v020", topic: "koerper", level: "A2", word: "müde", en: "tired", example: "Sie ist müde.", partOfSpeech: "adj" },
-  { id: "v021", topic: "koerper", level: "A2", word: "weinen", en: "to cry", example: "Das Baby weint.", partOfSpeech: "verb" },
 
   // food basics
   { id: "v022", topic: "essen", level: "A2", word: "das Wasser", en: "water", partOfSpeech: "noun" },
