@@ -3,7 +3,7 @@ import type { Level, StreakData, TopicId } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import type { SyncStatus } from "../hooks/useSync";
 
-export type Mode = "karten" | "wortschatz" | "uebungen" | "quiz" | "dialoge";
+export type Mode = "karten" | "uebungen" | "quiz" | "dialoge";
 export type TopicFilter = Set<TopicId>;
 export type LevelFilter = Set<Level>;
 
@@ -47,6 +47,7 @@ interface AppShellProps {
   onResetProgress: () => void;
   streak: StreakData | null;
   sync: SyncState;
+  wortschatz: ReactNode;
   children: ReactNode;
 }
 
@@ -78,9 +79,11 @@ export default function AppShell({
   onResetProgress,
   streak,
   sync,
+  wortschatz,
   children,
 }: AppShellProps) {
   const progressPct = progressTotal === 0 ? 0 : Math.round((progressKnown / progressTotal) * 100);
+  const [wortschatzOpen, setWortschatzOpen] = useState(false);
 
   return (
     <div className="app-shell">
@@ -146,14 +149,39 @@ export default function AppShell({
 
       <button
         type="button"
-        className={`wortschatz-fab${mode === "wortschatz" ? " active" : ""}`}
-        onClick={() => onModeChange("wortschatz")}
+        className={`wortschatz-fab${wortschatzOpen ? " active" : ""}`}
+        onClick={() => setWortschatzOpen((o) => !o)}
         aria-label="Wortschatz"
-        aria-pressed={mode === "wortschatz"}
+        aria-pressed={wortschatzOpen}
         title="Wortschatz"
       >
         📖
       </button>
+
+      {wortschatzOpen && (
+        <div className="wortschatz-overlay" onClick={() => setWortschatzOpen(false)}>
+          <div
+            className="wortschatz-overlay-panel"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Wortschatz"
+          >
+            <div className="wortschatz-overlay-header">
+              <h2>Wortschatz</h2>
+              <button
+                type="button"
+                className="wortschatz-overlay-close"
+                onClick={() => setWortschatzOpen(false)}
+                aria-label="Schließen"
+              >
+                ×
+              </button>
+            </div>
+            <div className="wortschatz-overlay-body">{wortschatz}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -75,8 +75,6 @@ export default function App() {
     switch (mode) {
       case "karten":
         return filteredPhrases.length;
-      case "wortschatz":
-        return filteredVocab.length;
       case "uebungen":
         return filteredExercises.length;
       case "quiz":
@@ -88,7 +86,6 @@ export default function App() {
 
   const progressKnown = useMemo(() => {
     if (mode === "karten") return filteredPhrases.filter((p) => isKnown(p.id)).length;
-    if (mode === "wortschatz") return filteredVocab.filter((v) => isKnown(v.id)).length;
     if (mode === "uebungen") return filteredExercises.filter((e) => isKnown(e.id)).length;
     if (mode === "quiz") {
       return (
@@ -96,10 +93,10 @@ export default function App() {
         filteredVocab.filter((v) => isKnown(v.id)).length
       );
     }
-    if (mode === "dialoge") return 0;
+    if (mode === "dialoge") return filteredDialogs.filter((d) => isKnown(d.id)).length;
     return 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, filteredPhrases, filteredVocab, filteredExercises, isKnown]);
+  }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredDialogs, isKnown]);
 
   const toggleKnown = (id: string) => markKnown(id, !isKnown(id));
   const toggleTopic = (topic: TopicId) => setTopicFilter((prev) => toggleInSet(prev, topic));
@@ -120,6 +117,7 @@ export default function App() {
       onResetProgress={reset}
       streak={streak}
       sync={sync}
+      wortschatz={<VocabLookup vocab={visibleVocab} progress={progress} onToggleKnown={toggleKnown} />}
     >
       {mode === "karten" && (
         <Flashcards
@@ -128,9 +126,6 @@ export default function App() {
           onToggleKnown={toggleKnown}
           onReveal={recordActivity}
         />
-      )}
-      {mode === "wortschatz" && (
-        <VocabLookup vocab={visibleVocab} progress={progress} onToggleKnown={toggleKnown} />
       )}
       {mode === "uebungen" && (
         <FillInBlank
@@ -148,7 +143,14 @@ export default function App() {
           onAnswerVocab={recordAnswer}
         />
       )}
-      {mode === "dialoge" && <Dialogs dialogs={filteredDialogs} onReveal={recordActivity} />}
+      {mode === "dialoge" && (
+        <Dialogs
+          dialogs={filteredDialogs}
+          progress={progress}
+          onReveal={recordActivity}
+          onMarkRead={(id) => markKnown(id, true)}
+        />
+      )}
     </AppShell>
   );
 }

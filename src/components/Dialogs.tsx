@@ -1,12 +1,14 @@
-import { Fragment, useRef, useState } from "react";
-import type { Dialog } from "../data/types";
+import { Fragment, useEffect, useRef, useState } from "react";
+import type { Dialog, ProgressRecord } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import { VOCAB } from "../data/vocab";
 import { useSpeech } from "../hooks/useSpeech";
 
 interface DialogsProps {
   dialogs: Dialog[];
+  progress: Record<string, ProgressRecord>;
   onReveal: () => void;
+  onMarkRead: (id: string) => void;
 }
 
 const REVEAL_STREAK_THRESHOLD = 3;
@@ -31,13 +33,15 @@ function speakerColor(speaker: string): string {
   return "#5a6b76";
 }
 
-export default function Dialogs({ dialogs, onReveal }: DialogsProps) {
+export default function Dialogs({ dialogs, progress, onReveal, onMarkRead }: DialogsProps) {
   const [selected, setSelected] = useState<Dialog | null>(null);
   const [revealedLines, setRevealedLines] = useState<Set<number>>(new Set());
   const [openNotes, setOpenNotes] = useState<Set<number>>(new Set());
   const [expandedVocab, setExpandedVocab] = useState<Set<string>>(new Set());
   const everRevealedRef = useRef<Set<number>>(new Set());
   const streakTriggeredRef = useRef(false);
+  const readTriggeredRef = useRef(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const { speak, hasGermanVoice } = useSpeech();
 
   const openDialog = (dialog: Dialog) => {
@@ -47,9 +51,29 @@ export default function Dialogs({ dialogs, onReveal }: DialogsProps) {
     setExpandedVocab(new Set());
     everRevealedRef.current = new Set();
     streakTriggeredRef.current = false;
+    readTriggeredRef.current = false;
   };
 
   const closeDialog = () => setSelected(null);
+
+  // Marks the open dialog as read once its end comes into view.
+  useEffect(() => {
+    if (!selected) return;
+    const el = bottomRef.current;
+    if (!el) return;
+    const dialogId = selected.id;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !readTriggeredRef.current) {
+          readTriggeredRef.current = true;
+          onMarkRead(dialogId);
+        }
+      },
+      { threshold: 1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [selected, onMarkRead]);
 
   const toggleReveal = (i: number) => {
     setRevealedLines((prev) => {
@@ -94,6 +118,7 @@ export default function Dialogs({ dialogs, onReveal }: DialogsProps) {
           <div className="dialog-list">
             {dialogs.map((d) => {
               const topic = TOPICS.find((t) => t.id === d.topic);
+              const read = Boolean(progress[d.id]?.seen);
               return (
                 <div
                   key={d.id}
@@ -111,7 +136,14 @@ export default function Dialogs({ dialogs, onReveal }: DialogsProps) {
                 >
                   <div className="dialog-card-head">
                     <p className="dialog-card-title">{d.titleDe}</p>
-                    <span className={`level-badge level-${d.level.toLowerCase()}`}>{d.level}</span>
+                    <div className="dialog-card-badges">
+                      {read && (
+                        <span className="dialog-read-badge" title="Gelesen" aria-label="Gelesen">
+                          ✓
+                        </span>
+                      )}
+                      <span className={`level-badge level-${d.level.toLowerCase()}`}>{d.level}</span>
+                    </div>
                   </div>
                   <p className="dialog-card-title-en muted">{d.titleEn}</p>
                   <p className="dialog-card-situation muted">{d.situation}</p>
@@ -235,6 +267,8 @@ export default function Dialogs({ dialogs, onReveal }: DialogsProps) {
           </div>
         </div>
       )}
+
+      <div ref={bottomRef} aria-hidden="true" />
     </div>
   );
 }
