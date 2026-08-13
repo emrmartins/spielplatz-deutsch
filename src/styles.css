@@ -52,7 +52,7 @@ h3 {
 .app-shell {
   max-width: 720px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: 24px 16px 88px;
 }
 
 .app-header {
@@ -101,7 +101,8 @@ h3 {
 }
 
 .app-header h1 {
-  font-size: 1.75rem;
+  font-size: clamp(1.1rem, 6vw, 1.75rem);
+  padding: 0 48px;
 }
 
 .app-header p {
@@ -354,6 +355,35 @@ h3 {
   font-size: 1.1rem;
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(34, 48, 58, 0.08);
+}
+
+.wortschatz-fab {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-radius: 50%;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(34, 48, 58, 0.18);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.wortschatz-fab:hover {
+  background: #dce6ec;
+}
+
+.wortschatz-fab.active {
+  background: var(--color-ink);
+  color: white;
 }
 
 .settings-menu-panel {
@@ -901,10 +931,6 @@ h3 {
 }
 
 @media (max-width: 400px) {
-  .app-header h1 {
-    font-size: 1.4rem;
-  }
-
   .header-actions {
     position: static;
     justify-content: center;
@@ -940,4 +966,190 @@ h3 {
   .quiz-question {
     font-size: 1.1rem;
   }
+
+  .dialog-line-head {
+    flex-wrap: wrap;
+  }
+}
+
+.dialog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dialog-card {
+  --topic-color: var(--color-muted);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--topic-color);
+  padding: 16px 20px;
+  box-shadow: 0 2px 10px rgba(34, 48, 58, 0.06);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.dialog-card:hover {
+  background: #f2f6f8;
+}
+
+.dialog-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dialog-card-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.dialog-card-title-en {
+  font-size: 0.9rem;
+  margin: 2px 0 0;
+}
+
+.dialog-card-situation {
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+}
+
+.dialog-back {
+  border: none;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(34, 48, 58, 0.08);
+  margin-bottom: 16px;
+  transition: background var(--transition-fast);
+}
+
+.dialog-back:hover {
+  background: #dce6ec;
+}
+
+.dialog-read-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dialog-read-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.dialog-situation {
+  font-size: 0.95rem;
+  margin: 6px 0 20px;
+}
+
+.dialog-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.dialog-line {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-line-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dialog-speaker {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.dialog-line-head .audio-btn.small {
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+}
+
+.dialog-bubble {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  box-shadow: 0 2px 10px rgba(34, 48, 58, 0.06);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.dialog-bubble:hover {
+  background: #f2f6f8;
+}
+
+.dialog-de {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.dialog-note-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 0 0 6px;
+  vertical-align: middle;
+}
+
+.dialog-en {
+  font-size: 0.95rem;
+  margin: 8px 0 0;
+}
+
+.dialog-note {
+  font-size: 0.85rem;
+  margin: 8px 0 0;
+  font-style: italic;
+}
+
+.dialog-vocab-section {
+  margin-top: 8px;
+}
+
+.dialog-vocab-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dialog-vocab-chip-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-vocab-chip {
+  --chip-color: #2e9b8b;
+}
+
+.dialog-vocab-chip.open {
+  background: var(--chip-color);
+  color: white;
+}
+
+.dialog-vocab-detail {
+  margin-top: 6px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  box-shadow: 0 2px 10px rgba(34, 48, 58, 0.06);
+  max-width: 260px;
 }

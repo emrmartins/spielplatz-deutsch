@@ -3,7 +3,7 @@ import type { Level, StreakData, TopicId } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import type { SyncStatus } from "../hooks/useSync";
 
-export type Mode = "karten" | "wortschatz" | "uebungen" | "quiz";
+export type Mode = "karten" | "wortschatz" | "uebungen" | "quiz" | "dialoge";
 export type TopicFilter = Set<TopicId>;
 export type LevelFilter = Set<Level>;
 
@@ -28,9 +28,9 @@ interface SyncState {
 
 const MODES: { id: Mode; label: string }[] = [
   { id: "karten", label: "Karten" },
-  { id: "wortschatz", label: "Wortschatz" },
   { id: "uebungen", label: "Übungen" },
   { id: "quiz", label: "Quiz" },
+  { id: "dialoge", label: "Dialoge" },
 ];
 
 interface AppShellProps {
@@ -143,6 +143,17 @@ export default function AppShell({
       </div>
 
       <main className="mode-content">{children}</main>
+
+      <button
+        type="button"
+        className={`wortschatz-fab${mode === "wortschatz" ? " active" : ""}`}
+        onClick={() => onModeChange("wortschatz")}
+        aria-label="Wortschatz"
+        aria-pressed={mode === "wortschatz"}
+        title="Wortschatz"
+      >
+        📖
+      </button>
     </div>
   );
 }
