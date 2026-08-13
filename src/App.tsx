@@ -3,11 +3,13 @@ import type { Level, TopicId } from "./data/types";
 import { PHRASES, TOPICS } from "./data/phrases";
 import { VOCAB } from "./data/vocab";
 import { EXERCISES } from "./data/exercises";
+import { DIALOGS } from "./data/dialogs";
 import AppShell, { type LevelFilter, type Mode, type TopicFilter } from "./components/AppShell";
 import Flashcards from "./components/Flashcards";
 import VocabLookup from "./components/VocabLookup";
 import FillInBlank from "./components/FillInBlank";
 import Quiz from "./components/Quiz";
+import Dialogs from "./components/Dialogs";
 import { useProgress } from "./hooks/useProgress";
 import { useSync } from "./hooks/useSync";
 
@@ -49,6 +51,11 @@ export default function App() {
     [topicFilter, levelFilter],
   );
 
+  const filteredDialogs = useMemo(
+    () => DIALOGS.filter((d) => topicFilter.has(d.topic) && levelFilter.has(d.level)),
+    [topicFilter, levelFilter],
+  );
+
   // "Bekannte ausblenden" narrows the pool actually shown/practiced, but the
   // progress bar keeps counting against the full topic+level filtered set.
   const visiblePhrases = useMemo(
@@ -74,8 +81,10 @@ export default function App() {
         return filteredExercises.length;
       case "quiz":
         return filteredPhrases.length + filteredVocab.length;
+      case "dialoge":
+        return filteredDialogs.length;
     }
-  }, [mode, filteredPhrases, filteredVocab, filteredExercises]);
+  }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredDialogs]);
 
   const progressKnown = useMemo(() => {
     if (mode === "karten") return filteredPhrases.filter((p) => isKnown(p.id)).length;
@@ -87,6 +96,7 @@ export default function App() {
         filteredVocab.filter((v) => isKnown(v.id)).length
       );
     }
+    if (mode === "dialoge") return 0;
     return 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, filteredPhrases, filteredVocab, filteredExercises, isKnown]);
@@ -138,6 +148,7 @@ export default function App() {
           onAnswerVocab={recordAnswer}
         />
       )}
+      {mode === "dialoge" && <Dialogs dialogs={filteredDialogs} onReveal={recordActivity} />}
     </AppShell>
   );
 }

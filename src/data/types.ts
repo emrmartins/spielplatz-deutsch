@@ -65,3 +65,21 @@ export interface StreakData {
   longestStreak: number;
   lastActiveDate: string;   // ISO date string "2026-07-29"
 }
+
+export interface DialogLine {
+  speaker: string;          // "Du", "Erzieherin", "Kind", "Andere Mama", etc.
+  de: string;
+  en: string;
+  note?: string;            // grammar or cultural note on this line
+}
+
+export interface Dialog {
+  id: string;
+  topic: TopicId;
+  level: Level;
+  titleDe: string;          // e.g. "Beim Bringen am Morgen"
+  titleEn: string;          // e.g. "At morning drop-off"
+  situation: string;        // Brief English setup for context
+  lines: DialogLine[];
+  vocabIds?: string[];      // ids of VocabEntry items used in this dialog
+}
