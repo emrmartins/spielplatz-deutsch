@@ -138,7 +138,7 @@ export default function Dialogs({ dialogs, progress, onReveal, onMarkRead }: Dia
                     <p className="dialog-card-title">{d.titleDe}</p>
                     <div className="dialog-card-badges">
                       {read && (
-                        <span className="dialog-read-badge" title="Gelesen" aria-label="Gelesen">
+                        <span className="dialog-read-badge" title="Bekannt" aria-label="Bekannt">
                           ✓
                         </span>
                       )}

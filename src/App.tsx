@@ -70,6 +70,10 @@ export default function App() {
     () => (hideKnown ? filteredExercises.filter((e) => !isKnown(e.id)) : filteredExercises),
     [filteredExercises, hideKnown, isKnown],
   );
+  const visibleDialogs = useMemo(
+    () => (hideKnown ? filteredDialogs.filter((d) => !isKnown(d.id)) : filteredDialogs),
+    [filteredDialogs, hideKnown, isKnown],
+  );
 
   const progressTotal = useMemo(() => {
     switch (mode) {
@@ -145,7 +149,7 @@ export default function App() {
       )}
       {mode === "dialoge" && (
         <Dialogs
-          dialogs={filteredDialogs}
+          dialogs={visibleDialogs}
           progress={progress}
           onReveal={recordActivity}
           onMarkRead={(id) => markKnown(id, true)}

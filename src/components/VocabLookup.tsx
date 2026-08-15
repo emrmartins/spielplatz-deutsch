@@ -42,14 +42,16 @@ export default function VocabLookup({ vocab, progress, onToggleKnown }: VocabLoo
 
   return (
     <div className="vocab-lookup">
-      <input
-        type="text"
-        className="vocab-search"
-        placeholder="Suchen (Deutsch oder Englisch)…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        aria-label="Wortschatz durchsuchen"
-      />
+      <div className="vocab-search-bar">
+        <input
+          type="text"
+          className="vocab-search"
+          placeholder="Suchen (Deutsch oder Englisch)…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Wortschatz durchsuchen"
+        />
+      </div>
 
       {filtered.length === 0 ? (
         <div className="card">

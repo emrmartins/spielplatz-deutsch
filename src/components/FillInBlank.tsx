@@ -161,7 +161,7 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
           <p className="exercise-sentence">
             {before}
             <select
-              className="exercise-select"
+              className={`exercise-select${checked ? (isCorrect ? " correct" : " incorrect") : ""}`}
               value={selected ?? ""}
               disabled={checked}
               onClick={(e) => e.stopPropagation()}

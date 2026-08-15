@@ -701,6 +701,15 @@ h3 {
   flex-shrink: 0;
 }
 
+.vocab-search-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-bg);
+  padding-top: 2px;
+  padding-bottom: 16px;
+}
+
 .vocab-search {
   width: 100%;
   padding: 12px 18px;
@@ -711,7 +720,6 @@ h3 {
   font-family: var(--font-body);
   font-size: 1rem;
   box-shadow: 0 1px 4px rgba(34, 48, 58, 0.08);
-  margin-bottom: 16px;
 }
 
 .vocab-search::placeholder {
@@ -849,6 +857,16 @@ h3 {
 
 .exercise-select:disabled {
   opacity: 0.85;
+}
+
+.exercise-select.correct {
+  border-color: #2e9b8b;
+  background: rgba(46, 155, 139, 0.12);
+}
+
+.exercise-select.incorrect {
+  border-color: #d9544e;
+  background: rgba(217, 84, 78, 0.1);
 }
 
 .exercise-feedback {
