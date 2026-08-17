@@ -94,3 +94,30 @@ export interface Dialog {
   lines: DialogLine[];
   vocabIds?: string[];      // ids of VocabEntry items used in this dialog
 }
+
+export interface ReadingParagraph {
+  de: string;
+  en: string;
+  note?: string;
+}
+
+export interface ComprehensionQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanationDe: string;
+  explanationEn: string;
+}
+
+export interface ReadingText {
+  id: string;
+  topic: TopicId;
+  level: Level;
+  titleDe: string;
+  titleEn: string;
+  intro: string;
+  readingTimeMinutes: number;
+  paragraphs: ReadingParagraph[];
+  questions: ComprehensionQuestion[];
+  vocabIds?: string[];
+}

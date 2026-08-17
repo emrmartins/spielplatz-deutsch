@@ -5,12 +5,13 @@ import { VOCAB } from "./data/vocab";
 import { EXERCISES } from "./data/exercises";
 import { TRANSLATIONS } from "./data/translations";
 import { DIALOGS } from "./data/dialogs";
+import { READINGS } from "./data/readings";
 import AppShell, { type LevelFilter, type Mode, type TopicFilter } from "./components/AppShell";
 import Flashcards from "./components/Flashcards";
 import VocabLookup from "./components/VocabLookup";
 import FillInBlank from "./components/FillInBlank";
 import Quiz from "./components/Quiz";
-import Dialogs from "./components/Dialogs";
+import Lesen from "./components/Lesen";
 import { useProgress } from "./hooks/useProgress";
 import { useSync } from "./hooks/useSync";
 
@@ -62,6 +63,11 @@ export default function App() {
     [topicFilter, levelFilter],
   );
 
+  const filteredReadings = useMemo(
+    () => READINGS.filter((r) => topicFilter.has(r.topic) && levelFilter.has(r.level)),
+    [topicFilter, levelFilter],
+  );
+
   // "Bekannte ausblenden" narrows the pool actually shown/practiced, but the
   // progress bar keeps counting against the full topic+level filtered set.
   const visiblePhrases = useMemo(
@@ -93,7 +99,7 @@ export default function App() {
         return filteredExercises.length + filteredTranslations.length;
       case "quiz":
         return filteredPhrases.length + filteredVocab.length;
-      case "dialoge":
+      case "lesen":
         return filteredDialogs.length;
     }
   }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredTranslations, filteredDialogs]);
@@ -112,7 +118,7 @@ export default function App() {
         filteredVocab.filter((v) => isKnown(v.id)).length
       );
     }
-    if (mode === "dialoge") return filteredDialogs.filter((d) => isKnown(d.id)).length;
+    if (mode === "lesen") return filteredDialogs.filter((d) => isKnown(d.id)).length;
     return 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredTranslations, filteredDialogs, isKnown]);
@@ -163,9 +169,10 @@ export default function App() {
           onAnswerVocab={recordAnswer}
         />
       )}
-      {mode === "dialoge" && (
-        <Dialogs
+      {mode === "lesen" && (
+        <Lesen
           dialogs={visibleDialogs}
+          readings={filteredReadings}
           progress={progress}
           onReveal={recordActivity}
           onMarkRead={(id) => markKnown(id, true)}

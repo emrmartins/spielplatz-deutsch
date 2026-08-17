@@ -3,7 +3,7 @@ import type { Level, StreakData, TopicId } from "../data/types";
 import { TOPICS } from "../data/phrases";
 import type { SyncStatus } from "../hooks/useSync";
 
-export type Mode = "karten" | "uebungen" | "quiz" | "dialoge";
+export type Mode = "karten" | "uebungen" | "quiz" | "lesen";
 export type TopicFilter = Set<TopicId>;
 export type LevelFilter = Set<Level>;
 
@@ -30,7 +30,7 @@ const MODES: { id: Mode; label: string }[] = [
   { id: "karten", label: "Karten" },
   { id: "uebungen", label: "Übungen" },
   { id: "quiz", label: "Quiz" },
-  { id: "dialoge", label: "Dialoge" },
+  { id: "lesen", label: "Lesen" },
 ];
 
 interface AppShellProps {
