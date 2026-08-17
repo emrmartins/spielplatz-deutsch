@@ -53,6 +53,17 @@ export interface Exercise {
   difficulty: 1 | 2 | 3;
 }
 
+export interface TranslationExercise {
+  id: string;
+  topic: TopicId;
+  level: Level;
+  en: string; // English prompt to translate
+  de: string; // canonical German answer
+  altAnswers?: string[]; // other acceptable phrasings
+  explanation: string;
+  difficulty: 1 | 2 | 3;
+}
+
 export interface ProgressRecord {
   seen: boolean;
   correctCount: number;

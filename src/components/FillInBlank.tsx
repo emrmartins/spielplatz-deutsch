@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import type { Exercise, ProgressRecord } from "../data/types";
+import type { Exercise, ProgressRecord, TranslationExercise } from "../data/types";
+
+type PracticeItem = Exercise | TranslationExercise;
 
 interface FillInBlankProps {
   exercises: Exercise[];
+  translations: TranslationExercise[];
   progress: Record<string, ProgressRecord>;
   onAnswer: (id: string, correct: boolean) => void;
   onReveal: () => void;
@@ -19,55 +22,78 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
-function buildRound(pool: Exercise[]): Exercise[] {
-  return shuffle(pool).slice(0, ROUND_SIZE);
+function buildRound(exercises: Exercise[], translations: TranslationExercise[]): PracticeItem[] {
+  return shuffle([...exercises, ...translations]).slice(0, ROUND_SIZE);
 }
 
-export default function FillInBlank({ exercises, progress, onAnswer, onReveal }: FillInBlankProps) {
+// TranslationExercise has a `de` field, Exercise doesn't — that's enough to tell them apart.
+function isTranslationExercise(item: PracticeItem): item is TranslationExercise {
+  return "de" in item;
+}
+
+function normalizeAnswer(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/[.!?,;:]+$/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function checkTranslation(item: TranslationExercise, answer: string): boolean {
+  const normalized = normalizeAnswer(answer);
+  if (normalized.length === 0) return false;
+  return [item.de, ...(item.altAnswers ?? [])].some((a) => normalizeAnswer(a) === normalized);
+}
+
+export default function FillInBlank({ exercises, translations, progress, onAnswer, onReveal }: FillInBlankProps) {
   const overallStats = useMemo(() => {
     let correct = 0;
     let wrong = 0;
-    for (const e of exercises) {
+    for (const e of [...exercises, ...translations]) {
       correct += progress[e.id]?.correctCount ?? 0;
       wrong += progress[e.id]?.wrongCount ?? 0;
     }
     return { correct, wrong, total: correct + wrong };
-  }, [exercises, progress]);
+  }, [exercises, translations, progress]);
 
-  const [round, setRound] = useState<Exercise[]>(() => buildRound(exercises));
+  const [round, setRound] = useState<PracticeItem[]>(() => buildRound(exercises, translations));
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
+  const [textAnswer, setTextAnswer] = useState("");
   const [checked, setChecked] = useState(false);
   const [translated, setTranslated] = useState(false);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [complete, setComplete] = useState(false);
 
   useEffect(() => {
-    setRound(buildRound(exercises));
+    setRound(buildRound(exercises, translations));
     setIndex(0);
     setSelected(null);
+    setTextAnswer("");
     setChecked(false);
     setTranslated(false);
     setScore({ correct: 0, total: 0 });
     setComplete(false);
-  }, [exercises]);
+  }, [exercises, translations]);
 
   const startNewRound = () => {
-    setRound(buildRound(exercises));
+    setRound(buildRound(exercises, translations));
     setIndex(0);
     setSelected(null);
+    setTextAnswer("");
     setChecked(false);
     setTranslated(false);
     setScore({ correct: 0, total: 0 });
     setComplete(false);
   };
 
-  const current = round[index] as Exercise | undefined;
-  // Every exercise in the data lists the correct choice first (correctIndex: 0),
+  const current = round[index] as PracticeItem | undefined;
+  const isTranslateItem = current ? isTranslationExercise(current) : false;
+  // Every fill-in exercise lists the correct choice first (correctIndex: 0),
   // so the displayed order must be shuffled — the <option> value stays the
   // original index into current.options, only the render order changes.
   const optionOrder = useMemo(
-    () => shuffle((current?.options ?? []).map((_, i) => i)),
+    () => shuffle((current && !isTranslationExercise(current) ? current.options : []).map((_, i) => i)),
     [current],
   );
 
@@ -79,7 +105,7 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
     </p>
   );
 
-  if (exercises.length === 0) {
+  if (exercises.length === 0 && translations.length === 0) {
     return (
       <div className="fill-in-blank">
         <div className="card">
@@ -105,9 +131,13 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
 
   if (!current) return null;
 
-  const isCorrect = selected === current.correctIndex;
+  const isCorrect = isTranslateItem
+    ? checkTranslation(current as TranslationExercise, textAnswer)
+    : selected === (current as Exercise).correctIndex;
   const currentRecord = progress[current.id];
-  const [before, after] = current.sentence.split("___");
+  const correctAnswerText = isTranslateItem
+    ? (current as TranslationExercise).de
+    : (current as Exercise).options[(current as Exercise).correctIndex];
 
   const toggleTranslate = () => {
     setTranslated((t) => {
@@ -118,7 +148,7 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
   };
 
   const handleCheck = () => {
-    if (selected === null) return;
+    if (isTranslateItem ? textAnswer.trim().length === 0 : selected === null) return;
     setChecked(true);
     setScore((s) => ({ correct: s.correct + (isCorrect ? 1 : 0), total: s.total + 1 }));
     onAnswer(current.id, isCorrect);
@@ -128,6 +158,7 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
     if (index + 1 < round.length) {
       setIndex(index + 1);
       setSelected(null);
+      setTextAnswer("");
       setChecked(false);
       setTranslated(false);
     } else {
@@ -144,56 +175,77 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
       </div>
 
       <div className="card exercise-card">
-        <div
-          className="exercise-sentence-wrap"
-          onClick={toggleTranslate}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              toggleTranslate();
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          aria-expanded={translated}
-          aria-label="Übersetzung anzeigen oder verbergen"
-        >
-          <p className="exercise-sentence">
-            {before}
-            <select
-              className={`exercise-select${checked ? (isCorrect ? " correct" : " incorrect") : ""}`}
-              value={selected ?? ""}
+        {isTranslateItem ? (
+          <div className="translate-prompt">
+            <p className="muted translate-prompt-label">Übersetze ins Deutsche:</p>
+            <p className="exercise-sentence">{(current as TranslationExercise).en}</p>
+            <input
+              type="text"
+              className={`translate-input${checked ? (isCorrect ? " correct" : " incorrect") : ""}`}
+              value={textAnswer}
               disabled={checked}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => setSelected(Number(e.target.value))}
-              aria-label="Antwort auswählen"
-            >
-              <option value="" disabled>
-                Wählen…
-              </option>
-              {optionOrder.map((origIndex) => (
-                <option key={origIndex} value={origIndex}>
-                  {current.options[origIndex]}
-                </option>
-              ))}
-            </select>
-            {after}
-          </p>
-          <span className={`reveal-chevron${translated ? " open" : ""}`} aria-hidden="true">
-            ▾
-          </span>
-        </div>
-
-        <div className={`reveal-wrap${translated ? " open" : ""}`}>
-          <div className="reveal-inner">
-            <p className="exercise-en muted">{current.en}</p>
+              onChange={(e) => setTextAnswer(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !checked && textAnswer.trim().length > 0) handleCheck();
+              }}
+              placeholder="Deine Antwort auf Deutsch…"
+              aria-label="Deutsche Übersetzung eingeben"
+            />
           </div>
-        </div>
+        ) : (
+          <div
+            className="exercise-sentence-wrap"
+            onClick={toggleTranslate}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleTranslate();
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-expanded={translated}
+            aria-label="Übersetzung anzeigen oder verbergen"
+          >
+            <p className="exercise-sentence">
+              {(current as Exercise).sentence.split("___")[0]}
+              <select
+                className={`exercise-select${checked ? (isCorrect ? " correct" : " incorrect") : ""}`}
+                value={selected ?? ""}
+                disabled={checked}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => setSelected(Number(e.target.value))}
+                aria-label="Antwort auswählen"
+              >
+                <option value="" disabled>
+                  Wählen…
+                </option>
+                {optionOrder.map((origIndex) => (
+                  <option key={origIndex} value={origIndex}>
+                    {(current as Exercise).options[origIndex]}
+                  </option>
+                ))}
+              </select>
+              {(current as Exercise).sentence.split("___")[1]}
+            </p>
+            <span className={`reveal-chevron${translated ? " open" : ""}`} aria-hidden="true">
+              ▾
+            </span>
+          </div>
+        )}
+
+        {!isTranslateItem && (
+          <div className={`reveal-wrap${translated ? " open" : ""}`}>
+            <div className="reveal-inner">
+              <p className="exercise-en muted">{(current as Exercise).en}</p>
+            </div>
+          </div>
+        )}
 
         {checked && (
           <div className={`exercise-feedback ${isCorrect ? "correct" : "incorrect"}`}>
             <p className="exercise-feedback-title">
-              {isCorrect ? "Richtig!" : `Leider falsch. Richtig wäre: „${current.options[current.correctIndex]}“.`}
+              {isCorrect ? "Richtig!" : `Leider falsch. Richtig wäre: „${correctAnswerText}“.`}
             </p>
             <p className="exercise-explanation">{current.explanation}</p>
             {currentRecord && (
@@ -206,7 +258,10 @@ export default function FillInBlank({ exercises, progress, onAnswer, onReveal }:
 
         <div className="exercise-controls">
           {!checked ? (
-            <button onClick={handleCheck} disabled={selected === null}>
+            <button
+              onClick={handleCheck}
+              disabled={isTranslateItem ? textAnswer.trim().length === 0 : selected === null}
+            >
               Prüfen
             </button>
           ) : (

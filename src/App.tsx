@@ -3,6 +3,7 @@ import type { Level, TopicId } from "./data/types";
 import { PHRASES, TOPICS } from "./data/phrases";
 import { VOCAB } from "./data/vocab";
 import { EXERCISES } from "./data/exercises";
+import { TRANSLATIONS } from "./data/translations";
 import { DIALOGS } from "./data/dialogs";
 import AppShell, { type LevelFilter, type Mode, type TopicFilter } from "./components/AppShell";
 import Flashcards from "./components/Flashcards";
@@ -51,6 +52,11 @@ export default function App() {
     [topicFilter, levelFilter],
   );
 
+  const filteredTranslations = useMemo(
+    () => TRANSLATIONS.filter((t) => topicFilter.has(t.topic) && levelFilter.has(t.level)),
+    [topicFilter, levelFilter],
+  );
+
   const filteredDialogs = useMemo(
     () => DIALOGS.filter((d) => topicFilter.has(d.topic) && levelFilter.has(d.level)),
     [topicFilter, levelFilter],
@@ -70,6 +76,10 @@ export default function App() {
     () => (hideKnown ? filteredExercises.filter((e) => !isKnown(e.id)) : filteredExercises),
     [filteredExercises, hideKnown, isKnown],
   );
+  const visibleTranslations = useMemo(
+    () => (hideKnown ? filteredTranslations.filter((t) => !isKnown(t.id)) : filteredTranslations),
+    [filteredTranslations, hideKnown, isKnown],
+  );
   const visibleDialogs = useMemo(
     () => (hideKnown ? filteredDialogs.filter((d) => !isKnown(d.id)) : filteredDialogs),
     [filteredDialogs, hideKnown, isKnown],
@@ -80,17 +90,22 @@ export default function App() {
       case "karten":
         return filteredPhrases.length;
       case "uebungen":
-        return filteredExercises.length;
+        return filteredExercises.length + filteredTranslations.length;
       case "quiz":
         return filteredPhrases.length + filteredVocab.length;
       case "dialoge":
         return filteredDialogs.length;
     }
-  }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredDialogs]);
+  }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredTranslations, filteredDialogs]);
 
   const progressKnown = useMemo(() => {
     if (mode === "karten") return filteredPhrases.filter((p) => isKnown(p.id)).length;
-    if (mode === "uebungen") return filteredExercises.filter((e) => isKnown(e.id)).length;
+    if (mode === "uebungen") {
+      return (
+        filteredExercises.filter((e) => isKnown(e.id)).length +
+        filteredTranslations.filter((t) => isKnown(t.id)).length
+      );
+    }
     if (mode === "quiz") {
       return (
         filteredPhrases.filter((p) => isKnown(p.id)).length +
@@ -100,7 +115,7 @@ export default function App() {
     if (mode === "dialoge") return filteredDialogs.filter((d) => isKnown(d.id)).length;
     return 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredDialogs, isKnown]);
+  }, [mode, filteredPhrases, filteredVocab, filteredExercises, filteredTranslations, filteredDialogs, isKnown]);
 
   const toggleKnown = (id: string) => markKnown(id, !isKnown(id));
   const toggleTopic = (topic: TopicId) => setTopicFilter((prev) => toggleInSet(prev, topic));
@@ -134,6 +149,7 @@ export default function App() {
       {mode === "uebungen" && (
         <FillInBlank
           exercises={visibleExercises}
+          translations={visibleTranslations}
           progress={progress}
           onAnswer={recordAnswer}
           onReveal={recordActivity}

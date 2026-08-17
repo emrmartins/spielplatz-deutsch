@@ -869,6 +869,41 @@ h3 {
   background: rgba(217, 84, 78, 0.1);
 }
 
+.translate-prompt-label {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+}
+
+.translate-input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  border: 2px solid var(--color-muted);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 10px;
+}
+
+.translate-input::placeholder {
+  color: var(--color-muted);
+}
+
+.translate-input:disabled {
+  opacity: 0.85;
+}
+
+.translate-input.correct {
+  border-color: #2e9b8b;
+  background: rgba(46, 155, 139, 0.12);
+}
+
+.translate-input.incorrect {
+  border-color: #d9544e;
+  background: rgba(217, 84, 78, 0.1);
+}
+
 .exercise-feedback {
   border-radius: var(--radius-lg);
   padding: 14px 18px;
